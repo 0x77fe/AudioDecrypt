@@ -44,17 +44,17 @@ void AudioDecrypt::StartProcess()
 	Addlog("线程开始");
 
 	auto action = [this,skip,use,del,savedir,files]()
-	{
+		{
 		bool r = true;
 		for (const auto& file : *files)
-		{
-			try {
+			{
+				try {
 				emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
-				DecodeFactory(file, savedir, skip);
+					DecodeFactory(file, savedir, skip);
 				emit SignalAddlog(" ... [完成] ", "\n", false);
-				if (del) { remove(file); }
+					if (del) { remove(file); }
 				//throw new exception("text");
-			}
+				}
 			catch (exception e)
 			{
 				emit SignalAddlog("失败:" + QString::fromLocal8Bit(e.what()));
@@ -76,12 +76,12 @@ void AudioDecrypt::StartProcess()
 		catch (exception e)
 		{
 			Addlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
-		};
+			};
 		_files = vector<filesystem::path>();
 		_model.clear();
 		Addlog("全部处理完成 线程结束");
-		th = !th;
-	};
+			th = !th;
+		};
 
 	auto fut = QtConcurrent::run(action);
 	connect(&_thWatcher, &QFutureWatcher<bool>::finished, end);
@@ -121,9 +121,10 @@ void AudioDecrypt::Addlog(QString Info, QString End, bool Time)
 	char buffer[20]{ '\0' };
 	QString time_(" ");
 	if (Time)
-	{
-		time_t now = time(nullptr);
-		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+{
+	time_t now = time(nullptr);
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 		time_.append("[").append(buffer).append("]");
 	}
 
