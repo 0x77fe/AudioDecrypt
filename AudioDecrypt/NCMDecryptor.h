@@ -1,4 +1,7 @@
 #pragma once
+#if _MSC_VER >= 1600
+#pragma execution_character_set("utf-8")
+#endif
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/tpropertymap.h>
@@ -31,7 +34,7 @@ namespace ncm {
 	{
 		char magic_hander[10];
 		ms.read(magic_hander, 10);
-		if (strncmp(NCM_hander, magic_hander, 10) != 0) { throw new exception("[HANDER]ncm已损坏或不是一个ncm文件"); }
+		if (strncmp(NCM_hander, magic_hander, 10) != 0) { throw new runtime_error("ncm已损坏或不是一个ncm文件"); }
 	}
 
 	string* GetRC4Key(stringstream& ms)
@@ -188,7 +191,7 @@ namespace ncm {
 	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(filepath, ios::binary);
-		if (!f) { throw new exception("[MAIN]打开文件失败"); return; };
+		if (!f) { throw new runtime_error("打开文件失败"); return; };
 
 		stringstream ms;
 		ms << f.rdbuf();
@@ -225,7 +228,7 @@ namespace ncm {
 
 		//正式解密文件
 		ofstream file(outputfile_path, ios::out|ios::binary);
-		if (!file.good()) { throw new exception("[MAIN]写文件错误"); }
+		if (!file.good()) { throw new runtime_error("写文件错误"); }
 		DecodeAudio(ms, file, RC4_key);
 
 		SetMusicInfo(outputfile_path, info);

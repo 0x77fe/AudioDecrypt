@@ -1,4 +1,7 @@
 #pragma once
+#if _MSC_VER >= 1600
+#pragma execution_character_set("utf-8")
+#endif
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -86,13 +89,14 @@ namespace kgma {
 		0x52, 0xDC, 0x03, 0xF3, 0xF9, 0x4E, 0x42, 0xE9, 0x3D, 0x61, 0xEF, 0x7C, 0xB6, 0xB3, 0x93, 0x50,
 	};
 
-	void CheakHeader(stringstream& ms)
+	bool CheakHeader(stringstream& ms)
 	{
 		char magic_hander[16];
 		ms.read(magic_hander, 16);
-		if (strncmp(magic_hander, (char*)VprHeader, 16) == 0) { H = VPR; return; };
-		if (strncmp(magic_hander, (char*)KgmHeader, 16) == 0) { H = OTHER; return; };
-		throw new exception("[MAIN]文件已损坏或不是一个支持的文件");
+		if (strncmp(magic_hander, (char*)VprHeader, 16) == 0) { H = VPR; return true; };
+		if (strncmp(magic_hander, (char*)KgmHeader, 16) == 0) { H = OTHER; return true; };
+		//throw new runtime_error("[MAIN]文件已损坏或不是一个支持的文件");
+		return false;
 	}
 
 	int HeaderLength(stringstream& ms)
@@ -170,24 +174,35 @@ namespace kgma {
 		return info;
 	}
 
+	void Save(filesystem::path filepath, stringstream& ms, filesystem::path outputfile_path, ofstream& fs)
+	{
+		auto info = GetMusicInfo(filepath);
+		string name = w32(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+
+		//将斜杆替换为全角字符,防止出错
+		name = replace_(name, "/", { char(-93),char(-81) });
+
+		//复制文件
+		ms.seekg(0, ios_base::beg);
+		fs << ms.rdbuf();
+		fs.flush();
+		fs.close();
+
+		filesystem::path save_path = outputfile_path.parent_path().append(name);
+		rename(outputfile_path, save_path);
+
+		delete info;
+	}
 
 	void Decrypt(const filesystem::path& filename, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(filename, ios::binary);
-		if (!f) { throw new exception("[MAIN]打开文件失败"); return; };
+		if (!f) { throw new runtime_error("打开文件失败"); return; };
 
 		//读入文件
 		stringstream ms;
 		ms << f.rdbuf();
 		f.close();
-
-		//检查文件头
-		CheakHeader(ms);
-
-		//头部数据长度
-		int length = HeaderLength(ms);
-		//key
-		auto key = GetKey(ms);
 
 		//临时文件
 		filesystem::path outputfile_path;
@@ -200,6 +215,13 @@ namespace kgma {
 			outputfile_path = CreateTempFile(outputpath);
 		}
 		ofstream fs(outputfile_path, ios::out | ios_base::binary);
+
+		//检查文件头
+		if (!CheakHeader(ms)) { f.close(); Save(filename,ms, outputfile_path, fs); return; };
+		//头部数据长度
+		int length = HeaderLength(ms);
+		//key
+		auto key = GetKey(ms);
 
 		//正式解密
 		ms.seekg(length, ios_base::beg);
