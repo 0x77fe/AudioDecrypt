@@ -125,24 +125,24 @@ namespace kgma {
 
 			for (int i = 0; i < 4096; i++)
 			{
-				med8 = (*key)[(pos) % 17] ^ buffer[i];
-				med8 ^= (med8 & 15) << 4;
+			med8 = (*key)[(pos) % 17] ^ buffer[i];
+			med8 ^= (med8 & 15) << 4;
 
-				msk8 = 0;
-				offset = pos >> 4;
-				while (offset >= 0x11)
-				{
-					msk8 ^= table1[offset % 272];
-					offset >>= 4;
-					msk8 ^= table2[offset % 272];
-					offset >>= 4;
-				}
-				msk8 = MaskV2PreDef[pos % 272] ^ msk8;
-				msk8 ^= (msk8 & 15) << 4;
+			msk8 = 0;
+			offset = pos >> 4;
+			while (offset >= 0x11)
+			{
+				msk8 ^= table1[offset % 272];
+				offset >>= 4;
+				msk8 ^= table2[offset % 272];
+				offset >>= 4;
+			}
+			msk8 = MaskV2PreDef[pos % 272] ^ msk8;
+			msk8 ^= (msk8 & 15) << 4;
 
-				buffer[i] = med8 ^ msk8;
-				if (H == VPR) { buffer[i] ^= VprMaskDiff[pos % 17]; };
-				pos++;
+			buffer[i] = med8 ^ msk8;
+			if (H == VPR) { buffer[i] ^= VprMaskDiff[pos % 17]; };
+			pos++;
 			}
 			f.write(buffer, ms.gcount());
 		}
