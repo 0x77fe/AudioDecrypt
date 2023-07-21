@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>AudioDecrypt</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="AudioDecrypt.qrc">
+    <normaloff>:/AudioDecrypt/res/logo.jpg</normaloff>:/AudioDecrypt/res/logo.jpg</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QTextEdit" name="textEdit_log">
     <property name="geometry">

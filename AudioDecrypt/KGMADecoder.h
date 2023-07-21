@@ -125,24 +125,24 @@ namespace kgma {
 
 			for (int i = 0; i < 4096; i++)
 			{
-			med8 = (*key)[(pos) % 17] ^ buffer[i];
-			med8 ^= (med8 & 15) << 4;
+				med8 = (*key)[(pos) % 17] ^ buffer[i];
+				med8 ^= (med8 & 15) << 4;
 
-			msk8 = 0;
-			offset = pos >> 4;
-			while (offset >= 0x11)
-			{
-				msk8 ^= table1[offset % 272];
-				offset >>= 4;
-				msk8 ^= table2[offset % 272];
-				offset >>= 4;
-			}
-			msk8 = MaskV2PreDef[pos % 272] ^ msk8;
-			msk8 ^= (msk8 & 15) << 4;
+				msk8 = 0;
+				offset = pos >> 4;
+				while (offset >= 0x11)
+				{
+					msk8 ^= table1[offset % 272];
+					offset >>= 4;
+					msk8 ^= table2[offset % 272];
+					offset >>= 4;
+				}
+				msk8 = MaskV2PreDef[pos % 272] ^ msk8;
+				msk8 ^= (msk8 & 15) << 4;
 
-			buffer[i] = med8 ^ msk8;
-			if (H == VPR) { buffer[i] ^= VprMaskDiff[pos % 17]; };
-			pos++;
+				buffer[i] = med8 ^ msk8;
+				if (H == VPR) { buffer[i] ^= VprMaskDiff[pos % 17]; };
+				pos++;
 			}
 			f.write(buffer, ms.gcount());
 		}
@@ -182,6 +182,12 @@ namespace kgma {
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
 
+		//空文件名处理
+		if ("" == info->musicName)
+		{
+			name = "[未命名]" + filepath.filename().string();
+		}
+
 		//复制文件
 		ms.seekg(0, ios_base::beg);
 		fs << ms.rdbuf();
@@ -217,7 +223,7 @@ namespace kgma {
 		ofstream fs(outputfile_path, ios::out | ios_base::binary);
 
 		//检查文件头
-		if (!CheakHeader(ms)) { f.close(); Save(filename,ms, outputfile_path, fs); return; };
+		if (!CheakHeader(ms)) { f.close(); Save(filename, ms, outputfile_path, fs); return; };
 		//头部数据长度
 		int length = HeaderLength(ms);
 		//key

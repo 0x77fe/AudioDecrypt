@@ -1,4 +1,5 @@
 <RCC>
-    <qresource prefix="AudioDecrypt">
-    </qresource>
+  <qresource prefix="AudioDecrypt">
+    <file>res/logo.jpg</file>
+  </qresource>
 </RCC>
