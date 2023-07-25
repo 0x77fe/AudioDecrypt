@@ -90,6 +90,8 @@ void AudioDecrypt::StartProcess()
 
 void AudioDecrypt::SelectDir()
 {
+	_files = vector<filesystem::path>();
+	_model.clear();
 	auto folderPath = new QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
 	if (folderPath->isEmpty()) { delete folderPath; return; }
 	string Dir = folderPath->toStdString();

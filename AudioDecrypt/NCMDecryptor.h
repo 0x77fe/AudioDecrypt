@@ -34,7 +34,7 @@ namespace ncm {
 	{
 		char magic_hander[10];
 		ms.read(magic_hander, 10);
-		if (strncmp(NCM_hander, magic_hander, 10) != 0) { throw new runtime_error("ncm已损坏或不是一个ncm文件"); }
+		if (strncmp(NCM_hander, magic_hander, 10) != 0) { throw runtime_error("ncm已损坏或不是一个ncm文件"); }
 	}
 
 	string* GetRC4Key(stringstream& ms)
@@ -191,7 +191,7 @@ namespace ncm {
 	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(filepath, ios::binary);
-		if (!f) { throw new runtime_error("打开文件失败"); return; };
+		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		stringstream ms;
 		ms << f.rdbuf();
@@ -208,7 +208,7 @@ namespace ncm {
 
 
 		//拼接文件名
-		string name = w32(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+		string name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
 
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
@@ -228,7 +228,7 @@ namespace ncm {
 
 		//正式解密文件
 		ofstream file(outputfile_path, ios::out|ios::binary);
-		if (!file.good()) { throw new runtime_error("写文件错误"); }
+		if (!file.good()) { throw runtime_error("写文件错误"); }
 		DecodeAudio(ms, file, RC4_key);
 
 		SetMusicInfo(outputfile_path, info);

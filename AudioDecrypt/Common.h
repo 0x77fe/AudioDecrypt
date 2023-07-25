@@ -33,7 +33,7 @@ struct musicInfo
 
 //flac文件头
 constexpr char FLAC_HEADER[4] = { "fLa" };
-constexpr char MP3_HEADER[4] = { "RDM" };
+constexpr char MP3_HEADER[4] = { "ID3" };
 
 //搜索文件
 vector<filesystem::path> SerchFiles(const filesystem::path& Dir, const vector<string>& Suffixs)
@@ -107,23 +107,6 @@ string GbkToUtf8(const std::string& gbkStr)
 	return result;
 }
 #endif // WIN32
-string w32(const string& utf8_str)
-{
-#ifdef WIN32
-	return Utf8ToGbk(utf8_str);
-#else
-	return utf8_str;
-#endif
-}
-
-string w32b(const string& gbk_str)
-{
-#ifdef WIN32
-	return GbkToUtf8(gbk_str);
-#else
-	return gbk_str;
-#endif
-}
 
 //创建临时文件
 filesystem::path CreateTempFile(filesystem::path indir)

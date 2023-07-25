@@ -96,7 +96,7 @@ namespace kgma {
 		if (strncmp(magic_hander, (char*)VprHeader, 16) == 0) { H = VPR; return true; };
 		if (strncmp(magic_hander, (char*)KgmHeader, 16) == 0) { H = OTHER; return true; };
 		if ((strncmp(magic_hander, (char*)FLAC_HEADER, 3) == 0) or (strncmp(magic_hander, (char*)MP3_HEADER, 3) == 0)) { return false; }
-		throw new runtime_error("文件已损坏或不是一个支持的文件");
+		throw runtime_error("文件已损坏或不是一个支持的文件");
 	}
 
 	int HeaderLength(stringstream& ms)
@@ -177,16 +177,19 @@ namespace kgma {
 	void Save(filesystem::path filepath, stringstream& ms, filesystem::path outputfile_path, ofstream& fs)
 	{
 		auto info = GetMusicInfo(filepath);
-		string name = w32(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
-
-		//将斜杆替换为全角字符,防止出错
-		name = replace_(name, "/", { char(-93),char(-81) });
+		string name;
 
 		//空文件名处理
 		if ("" == info->musicName)
 		{
-			name = "[未命名]" + filepath.filename().string();
+			name = "[未命名]" + Utf8ToGbk(string((char*)filepath.filename().u8string().c_str()));
 		}
+		else
+		{
+			name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+		}
+		//将斜杆替换为全角字符,防止出错
+		name = replace_(name, "/", { char(-93),char(-81) });
 
 		//复制文件
 		ms.seekg(0, ios_base::beg);
@@ -203,7 +206,7 @@ namespace kgma {
 	void Decrypt(const filesystem::path& filename, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(filename, ios::binary);
-		if (!f) { throw new runtime_error("打开文件失败"); return; };
+		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		//读入文件
 		stringstream ms;
@@ -234,8 +237,17 @@ namespace kgma {
 		DecodeAudio(ms, fs, key);
 
 		auto info = GetMusicInfo(outputfile_path);
-		string name = w32(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+		string name;
 
+		//空文件名处理
+		if ("" == info->musicName)
+		{
+			name = "[未命名]" + filename.filename().string();
+		}
+		else
+		{
+			name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+		}
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
 
