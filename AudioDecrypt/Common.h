@@ -13,7 +13,7 @@ using namespace std;
 //
 
 template <typename T>
-bool has(const vector<T>& list,const T& obj)
+bool has(const vector<T>& list, const T& obj)
 {
 	for (auto& item : list)
 	{
@@ -32,10 +32,11 @@ struct musicInfo
 };
 
 //flac文件头
-const char FLAC_HEADER[4] = "fLa";
+constexpr char FLAC_HEADER[4] = { "fLa" };
+constexpr char MP3_HEADER[4] = { "RDM" };
 
 //搜索文件
- vector<filesystem::path> SerchFiles(const filesystem::path& Dir, const vector<string>& Suffixs)
+vector<filesystem::path> SerchFiles(const filesystem::path& Dir, const vector<string>& Suffixs)
 {
 	using namespace filesystem;
 	auto files = vector<path>();
