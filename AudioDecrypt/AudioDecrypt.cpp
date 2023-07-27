@@ -16,7 +16,7 @@ AudioDecrypt::AudioDecrypt(QWidget* parent)
 	QObject::connect(ui.pushButton_selsctDir, &QPushButton::clicked, this, &AudioDecrypt::SelectDir);
 	QObject::connect(ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
 	//
-	QObject::connect(this,&AudioDecrypt::SignalAddlog,this,&AudioDecrypt::Addlog);
+	QObject::connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
 }
 
 AudioDecrypt::~AudioDecrypt()
@@ -43,17 +43,17 @@ void AudioDecrypt::StartProcess()
 	th = !th;
 	Addlog("线程开始");
 
-	auto action = [this,skip,use,del,savedir,files]()
-		{
+	auto action = [this, skip, use, del, savedir, files]()
+	{
 		bool r = true;
 		for (const auto& file : *files)
-			{
-				try {
+		{
+			try {
 				emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
-					DecodeFactory(file, savedir, skip);
+				DecodeFactory(file, savedir, skip);
 				emit SignalAddlog(" ... [完成] ", "\n", false);
-					if (del) { remove(file); }
-				}
+				if (del) { remove(file); }
+			}
 			catch (exception e)
 			{
 				emit SignalAddlog("失败:" + QString::fromLocal8Bit(e.what()));
@@ -75,12 +75,12 @@ void AudioDecrypt::StartProcess()
 		catch (exception e)
 		{
 			Addlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
-			};
+		};
 		_files = vector<filesystem::path>();
 		_model.clear();
 		Addlog("全部处理完成 线程结束");
-			th = !th;
-		};
+		th = !th;
+	};
 
 	auto fut = QtConcurrent::run(action);
 	connect(&_thWatcher, &QFutureWatcher<bool>::finished, end);
@@ -92,11 +92,10 @@ void AudioDecrypt::SelectDir()
 {
 	_files = vector<filesystem::path>();
 	_model.clear();
-	auto folderPath = new QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
-	if (folderPath->isEmpty()) { delete folderPath; return; }
-	string Dir = folderPath->toStdString();
-	ui.lineEdit_originalDir->setText(*folderPath);
-	delete folderPath;
+	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
+	if (folderPath.isEmpty()) { return; }
+	string Dir = folderPath.toStdString();
+	ui.lineEdit_originalDir->setText(folderPath);
 
 	_files = SerchFiles(ui.lineEdit_originalDir->text().toLocal8Bit().constData(), vector<string>{".ncm", ".kgm", ".kgma"});
 	for (const auto& file : _files) {
@@ -105,16 +104,15 @@ void AudioDecrypt::SelectDir()
 	}
 
 	ui.listView_originalFiles->setModel(&_model);
-	Addlog(QString("找到了 ").append(to_string(_files.size()).c_str()) + (QString)" 个文件");
+	Addlog(QString("找到了 ").append(to_string(_files.size()).c_str()) + " 个文件");
 }
 
 void AudioDecrypt::SelectSaveDir()
 {
-	auto folderPath = new QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
-	if (folderPath->isEmpty()) { delete folderPath; return; }
-	string Dir = folderPath->toStdString();
-	ui.lineEdit_saveDir->setText(*folderPath);
-	delete folderPath;
+	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
+	if (folderPath.isEmpty()) { return; }
+	string Dir = folderPath.toStdString();
+	ui.lineEdit_saveDir->setText(folderPath);
 }
 
 void AudioDecrypt::Addlog(QString Info, QString End, bool Time)
@@ -122,10 +120,10 @@ void AudioDecrypt::Addlog(QString Info, QString End, bool Time)
 	char buffer[20]{ '\0' };
 	QString time_(" ");
 	if (Time)
-{
-	time_t now = time(nullptr);
-	char buffer[80];
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+	{
+		time_t now = time(nullptr);
+		char buffer[80];
+		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 		time_.append("[").append(buffer).append("]");
 	}
 

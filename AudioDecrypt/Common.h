@@ -106,6 +106,15 @@ string GbkToUtf8(const std::string& gbkStr)
 	delete[] utf8Str;
 	return result;
 }
+#else
+string Utf8ToGbk(const string& utf8_str)
+{
+	return utf8_str;
+}
+string GbkToUtf8(const std::string& gbkStr)
+{
+	return gbkStr;
+}
 #endif // WIN32
 
 //创建临时文件

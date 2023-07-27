@@ -106,15 +106,15 @@ namespace kgma {
 		return length;
 	}
 
-	string* GetKey(stringstream& ms)
+	string GetKey(stringstream& ms)
 	{
-		auto key = new string(17, 0);
+		string key(17, 0);
 		ms.seekg(28, ios_base::beg);
-		ms.read(key->data(), 16);
+		ms.read(key.data(), 16);
 		return key;
 	}
 
-	void DecodeAudio(stringstream& ms, ofstream& f, const string* key)
+	void DecodeAudio(stringstream& ms, ofstream& f, const string& key)
 	{
 		size_t pos = 0, offset = 0;
 		char med8, msk8;
@@ -125,7 +125,7 @@ namespace kgma {
 
 			for (int i = 0; i < 4096; i++)
 			{
-				med8 = (*key)[(pos) % 17] ^ buffer[i];
+				med8 = (key)[(pos) % 17] ^ buffer[i];
 				med8 ^= (med8 & 15) << 4;
 
 				msk8 = 0;
@@ -150,27 +150,27 @@ namespace kgma {
 		f.close();
 	}
 
-	musicInfo* GetMusicInfo(filesystem::path filepath)
+	musicInfo GetMusicInfo(filesystem::path filepath)
 	{
 		using namespace TagLib;
-		auto info = new musicInfo;
+		musicInfo info;
 		ifstream file(filepath);
 		char magic_hander[3];
 		file.read(magic_hander, 3);
 		if (strncmp(magic_hander, (char*)FLAC_HEADER, 3) == 0)
 		{
 			file.close();
-			info->format = "flac";
+			info.format = "flac";
 		}
 		else
 		{
 			file.close();
-			info->format = "mp3";
+			info.format = "mp3";
 		}
 		FileRef f(filepath.c_str());
 		auto tag = f.tag();
-		info->artist.push_back(tag->artist().to8Bit(true));
-		info->musicName = tag->title().to8Bit(true);
+		info.artist.push_back(tag->artist().to8Bit(true));
+		info.musicName = tag->title().to8Bit(true);
 		return info;
 	}
 
@@ -180,13 +180,13 @@ namespace kgma {
 		string name;
 
 		//空文件名处理
-		if ("" == info->musicName)
+		if ("" == info.musicName)
 		{
-			name = "[未命名]" + Utf8ToGbk(string((char*)filepath.filename().u8string().c_str()));
+			name = Utf8ToGbk("[未命名]" + string((char*)filepath.filename().u8string().c_str()) + "." + info.format);
 		}
 		else
 		{
-			name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+			name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 		}
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
@@ -200,12 +200,11 @@ namespace kgma {
 		filesystem::path save_path = outputfile_path.parent_path().append(name);
 		rename(outputfile_path, save_path);
 
-		delete info;
 	}
 
-	void Decrypt(const filesystem::path& filename, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
+	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
-		ifstream f(filename, ios::binary);
+		ifstream f(filepath, ios::binary);
 		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		//读入文件
@@ -217,7 +216,7 @@ namespace kgma {
 		filesystem::path outputfile_path;
 		if (outputpath.empty())
 		{
-			outputfile_path = CreateTempFile(filename.parent_path());
+			outputfile_path = CreateTempFile(filepath.parent_path());
 		}
 		else
 		{
@@ -226,7 +225,7 @@ namespace kgma {
 		ofstream fs(outputfile_path, ios::out | ios_base::binary);
 
 		//检查文件头
-		if (!CheakHeader(ms)) { f.close(); Save(filename, ms, outputfile_path, fs); return; };
+		if (!CheakHeader(ms)) { f.close(); Save(filepath, ms, outputfile_path, fs); return; };
 		//头部数据长度
 		int length = HeaderLength(ms);
 		//key
@@ -240,13 +239,13 @@ namespace kgma {
 		string name;
 
 		//空文件名处理
-		if ("" == info->musicName)
+		if ("" == info.musicName)
 		{
-			name = "[未命名]" + filename.filename().string();
+			name = Utf8ToGbk("[未命名]" + string((char*)filepath.filename().u8string().c_str()) + "." + info.format);
 		}
 		else
 		{
-			name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+			name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 		}
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
@@ -255,7 +254,6 @@ namespace kgma {
 
 		rename(outputfile_path, save_path);
 
-		delete key, info;
 	}
 };
 

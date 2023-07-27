@@ -17,7 +17,6 @@ public:
 	//
 	void StartProcess();
 	void SelectDir();
-	//void addlog(QString Info, QString End = "\n", bool Time = true);
 	void SelectSaveDir();
 
 	//

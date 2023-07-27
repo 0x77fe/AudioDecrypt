@@ -37,7 +37,7 @@ namespace ncm {
 		if (strncmp(NCM_hander, magic_hander, 10) != 0) { throw runtime_error("ncm已损坏或不是一个ncm文件"); }
 	}
 
-	string* GetRC4Key(stringstream& ms)
+	string GetRC4Key(stringstream& ms)
 	{
 		int length = 0;//加密RC4密钥的密钥长度
 		ms.read((char*)&length, 4);
@@ -48,11 +48,11 @@ namespace ncm {
 		{
 			data[i] ^= 0x64;//对每个字节与0x64进行异或
 		}
-		auto RC4_key = new string(aes_ecb_decrypt(data, _core_key).substr(17));//AES后 去除前17位
+		auto RC4_key = aes_ecb_decrypt(data, _core_key).substr(17);//AES后 去除前17位
 		return RC4_key;
 	}
 
-	musicInfo* GetMusicInfo(stringstream& ms)
+	musicInfo GetMusicInfo(stringstream& ms)
 	{
 		int length = 0;//音乐信息长度
 		ms.read((char*)&length, 4);
@@ -70,20 +70,20 @@ namespace ncm {
 		rapidjson::Document doc;
 		doc.Parse(info.c_str());
 
-		auto inf = new musicInfo;
+		musicInfo inf;
 
 		//音乐名
 		if (doc.HasMember("musicName"))
 		{
 			rapidjson::Value& a = doc["musicName"];
-			inf->musicName = a.GetString();
+			inf.musicName = a.GetString();
 		}
 
 		//后缀名
 		if (doc.HasMember("format"))
 		{
 			rapidjson::Value& a = doc["format"];
-			inf->format = a.GetString();
+			inf.format = a.GetString();
 		}
 
 		//歌手
@@ -92,7 +92,7 @@ namespace ncm {
 			auto artists = doc["artist"].GetArray();
 			for (int i = 0; i < artists.Size(); i++)
 			{
-				inf->artist.push_back(artists[i][0].GetString());
+				inf.artist.push_back(artists[i][0].GetString());
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace ncm {
 		return data;
 	}
 
-	void DecodeAudio(stringstream& ms, ofstream& f, const string* RC4_key)
+	void DecodeAudio(stringstream& ms, ofstream& f, const string& RC4_key)
 	{
 		//初始化
 		char S[256] = {};
@@ -127,7 +127,7 @@ namespace ncm {
 		int j = 0;
 		for (int i = 0, temp; i < 256; i++)
 		{
-			j = (j + S[i] + (*RC4_key)[i % RC4_key->size()]) & 255;
+			j = (j + S[i] + (RC4_key)[i % RC4_key.size()]) & 255;
 			temp = S[i];
 			S[i] = S[j];
 			S[j] = temp;
@@ -154,15 +154,15 @@ namespace ncm {
 		f.close();
 	}
 
-	void SetMusicInfo(filesystem::path& filepath, musicInfo* info)
+	void SetMusicInfo(filesystem::path& filepath, musicInfo& info)
 	{
 		using namespace TagLib;
-		if (info->format == "flac")
+		if (info.format == "flac")
 		{
 			FLAC::File file(filepath.c_str());
 
 			auto pic = new FLAC::Picture();
-			pic->setData(ByteVector(info->cover.data(), info->cover.length()));
+			pic->setData(ByteVector(info.cover.data(), info.cover.length()));
 			pic->setMimeType("image/jpeg");
 			pic->setType(TagLib::FLAC::Picture::FrontCover);
 
@@ -177,7 +177,7 @@ namespace ncm {
 			auto frame = new ID3v2::AttachedPictureFrame();
 			frame->setMimeType("image/jpeg");
 			frame->setType(ID3v2::AttachedPictureFrame::FrontCover);
-			frame->setPicture(ByteVector(info->cover.data(), info->cover.length()));
+			frame->setPicture(ByteVector(info.cover.data(), info.cover.length()));
 
 			tag->removeFrames("APIC");
 			tag->addFrame(frame);
@@ -191,7 +191,7 @@ namespace ncm {
 	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(filepath, ios::binary);
-		if (!f) { throw runtime_error("打开文件失败"); return; };
+		if (!f) { throw runtime_error(Utf8ToGbk("打开文件失败")); return; };
 
 		stringstream ms;
 		ms << f.rdbuf();
@@ -204,11 +204,11 @@ namespace ncm {
 		int CRC = GetCRCCode(ms);
 		ms.seekg(5, ios::cur);
 		//获取封面
-		info->cover = GetImage(ms);
+		info.cover = GetImage(ms);
 
 
 		//拼接文件名
-		string name = Utf8ToGbk(info->musicName + " - " + join(info->artist, (string)",") + "." + info->format);
+		string name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 
 		//将斜杆替换为全角字符,防止出错
 		name = replace_(name, "/", { char(-93),char(-81) });
@@ -227,11 +227,10 @@ namespace ncm {
 		infile.close();
 
 		//正式解密文件
-		ofstream file(outputfile_path, ios::out|ios::binary);
-		if (!file.good()) { throw runtime_error("写文件错误"); }
+		ofstream file(outputfile_path, ios::out | ios::binary);
+		if (!file.good()) { throw runtime_error(Utf8ToGbk("写文件错误")); }
 		DecodeAudio(ms, file, RC4_key);
 
 		SetMusicInfo(outputfile_path, info);
-		delete RC4_key, info;
 	}
 };

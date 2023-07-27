@@ -191,7 +191,6 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
     <QtRcc Include="AudioDecrypt.qrc" />
     <QtUic Include="AudioDecrypt.ui" />
     <QtMoc Include="AudioDecrypt.h" />
