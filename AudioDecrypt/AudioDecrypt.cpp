@@ -29,7 +29,8 @@ void AudioDecrypt::StartProcess()
 		Addlog("未搜索文件或未找到文件");
 		return;
 	}
-	if (th) { return; }
+	//线程运行中
+	if (_thWatcher.isRunning()) { return; }
 
 	bool skip = ui.checkBox_skip->checkState();
 	bool use = ui.checkBox_useSaveDir->checkState();
@@ -40,7 +41,6 @@ void AudioDecrypt::StartProcess()
 	if (use) { savedir = ui.lineEdit_saveDir->text().toLocal8Bit().constData(); }
 	else { savedir = filesystem::path(); }
 
-	th = !th;
 	Addlog("线程开始");
 
 	auto action = [this, skip, use, del, savedir, files]()
@@ -62,34 +62,32 @@ void AudioDecrypt::StartProcess()
 		};
 		return r;
 	};
-
-	auto end = [=]()
+	auto end = [this]()
 	{
 		try
 		{
 			if (!_thWatcher.result())
 			{
-				Addlog("处理文件时发生了错误,请检查.");
+				emit SignalAddlog("处理文件时发生了错误,请检查.");
 			};
 		}
 		catch (exception e)
 		{
-			Addlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
+			emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
 		};
 		_files = vector<filesystem::path>();
 		_model.clear();
-		Addlog("全部处理完成 线程结束");
-		th = !th;
+		emit SignalAddlog("全部处理完成 线程结束");
 	};
-
 	auto fut = QtConcurrent::run(action);
 	connect(&_thWatcher, &QFutureWatcher<bool>::finished, end);
 	_thWatcher.setFuture(fut);
-
 }
 
 void AudioDecrypt::SelectDir()
 {
+	//线程运行中
+	if (_thWatcher.isRunning()) { return; }
 	_files = vector<filesystem::path>();
 	_model.clear();
 	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));

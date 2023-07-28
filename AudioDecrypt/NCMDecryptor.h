@@ -154,12 +154,12 @@ namespace ncm {
 		f.close();
 	}
 
-	void SetMusicInfo(filesystem::path& filepath, musicInfo& info)
+	void SetMusicInfo(filesystem::path& originalFilePath, musicInfo& info)
 	{
 		using namespace TagLib;
 		if (info.format == "flac")
 		{
-			FLAC::File file(filepath.c_str());
+			FLAC::File file(originalFilePath.c_str());
 
 			auto pic = new FLAC::Picture();
 			pic->setData(ByteVector(info.cover.data(), info.cover.length()));
@@ -171,7 +171,7 @@ namespace ncm {
 		}
 		else
 		{
-			MPEG::File file(filepath.c_str());
+			MPEG::File file(originalFilePath.c_str());
 			auto tag = file.ID3v2Tag(true);
 
 			auto frame = new ID3v2::AttachedPictureFrame();
@@ -188,9 +188,9 @@ namespace ncm {
 	}
 
 
-	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
+	void Decrypt(const filesystem::path& originalFilePath, filesystem::path& outputPath = *new filesystem::path(), bool skip = false)
 	{
-		ifstream f(filepath, ios::binary);
+		ifstream f(originalFilePath, ios::binary);
 		if (!f) { throw runtime_error(Utf8ToGbk("打开文件失败")); return; };
 
 		stringstream ms;
@@ -208,29 +208,32 @@ namespace ncm {
 
 
 		//拼接文件名
-		string name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
+		string name = (info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 
 		//将斜杆替换为全角字符,防止出错
-		name = replace_(name, "/", { char(-93),char(-81) });
+		name = replace_(name, "/", { "／" });
+		//utf-8文件名
+		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		wstring wideFilename = converter.from_bytes(name);
 
-		filesystem::path outputfile_path;
-		if (outputpath.empty())
+		filesystem::path outoriginalFilePath;
+		if (outputPath.empty())
 		{
-			outputfile_path = filepath.parent_path().append(name);
+			outoriginalFilePath = originalFilePath.parent_path().append(wideFilename);
 		}
 		else
 		{
-			outputfile_path = outputpath.string().append("\\").append(name);
+			outoriginalFilePath = outputPath.append("\\").append(wideFilename);
 		}
-		ifstream infile(outputfile_path);
+		ifstream infile(outoriginalFilePath);
 		if ((!infile.good()) && skip) { return; }
 		infile.close();
 
 		//正式解密文件
-		ofstream file(outputfile_path, ios::out | ios::binary);
+		ofstream file(outoriginalFilePath, ios::out | ios::binary);
 		if (!file.good()) { throw runtime_error(Utf8ToGbk("写文件错误")); }
 		DecodeAudio(ms, file, RC4_key);
 
-		SetMusicInfo(outputfile_path, info);
+		SetMusicInfo(outoriginalFilePath, info);
 	}
 };

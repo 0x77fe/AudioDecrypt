@@ -120,12 +120,22 @@ string GbkToUtf8(const std::string& gbkStr)
 //创建临时文件
 filesystem::path CreateTempFile(filesystem::path indir)
 {
-	int pos = 0;
-	ifstream file(indir.string() + "\\" + to_string(pos));
+	int pos = 100;
+	string pat;
+	string org = indir.string();
+	if (('\\' == org[org.size() - 1]) or ('/' == org[org.size() - 1]))
+	{
+		pat = indir.string() + "temp_";
+	}
+	else
+	{
+		pat = indir.string() + "\\" + "temp_";
+	}
+	ifstream file(pat + to_string(pos));
 	while (file)
 	{
 		pos += 1;
-		file = ifstream(indir.string() + "\\" + to_string(pos));
+		file = ifstream(pat + to_string(pos));
 	}
-	return (indir.string().append("\\").append(to_string(pos)));
+	return (pat + to_string(pos));
 }

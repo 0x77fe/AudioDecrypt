@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstdio>
+#include <codecvt>
 
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
@@ -150,11 +151,11 @@ namespace kgma {
 		f.close();
 	}
 
-	musicInfo GetMusicInfo(filesystem::path filepath)
+	musicInfo GetMusicInfo(filesystem::path originalFilePath)
 	{
 		using namespace TagLib;
 		musicInfo info;
-		ifstream file(filepath);
+		ifstream file(originalFilePath);
 		char magic_hander[3];
 		file.read(magic_hander, 3);
 		if (strncmp(magic_hander, (char*)FLAC_HEADER, 3) == 0)
@@ -167,44 +168,50 @@ namespace kgma {
 			file.close();
 			info.format = "mp3";
 		}
-		FileRef f(filepath.c_str());
+		FileRef f(originalFilePath.c_str());
 		auto tag = f.tag();
 		info.artist.push_back(tag->artist().to8Bit(true));
 		info.musicName = tag->title().to8Bit(true);
 		return info;
 	}
 
-	void Save(filesystem::path filepath, stringstream& ms, filesystem::path outputfile_path, ofstream& fs)
+	void Rename(const musicInfo& info, const filesystem::path& originalFilePath, const filesystem::path& tempFilePath)
 	{
-		auto info = GetMusicInfo(filepath);
 		string name;
-
 		//空文件名处理
 		if ("" == info.musicName)
 		{
-			name = Utf8ToGbk("[未命名]" + string((char*)filepath.filename().u8string().c_str()) + "." + info.format);
+			name = ("[未命名]" + string((char*)originalFilePath.filename().u8string().c_str()) + "." + info.format);
 		}
 		else
 		{
-			name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
+			name = (info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 		}
 		//将斜杆替换为全角字符,防止出错
-		name = replace_(name, "/", { char(-93),char(-81) });
+		name = replace_(name, "/", { "／" });
+		//utf-8文件名
+		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		wstring wideFilename = converter.from_bytes(name);
+
+		filesystem::path save_path = tempFilePath.parent_path().append(wideFilename);
+		rename(tempFilePath, save_path);
+	}
+
+	void Save(const filesystem::path& originalFilePath, stringstream& ms, const filesystem::path& tempFilePath, ofstream& fs)
+	{
+		auto info = GetMusicInfo(originalFilePath);
 
 		//复制文件
 		ms.seekg(0, ios_base::beg);
 		fs << ms.rdbuf();
 		fs.flush();
 		fs.close();
-
-		filesystem::path save_path = outputfile_path.parent_path().append(name);
-		rename(outputfile_path, save_path);
-
+		Rename(info, originalFilePath, tempFilePath);
 	}
 
-	void Decrypt(const filesystem::path& filepath, filesystem::path& outputpath = *new filesystem::path(), bool skip = false)
+	void Decrypt(const filesystem::path& originalFilePath, filesystem::path& outputPath = *new filesystem::path(), bool skip = false)
 	{
-		ifstream f(filepath, ios::binary);
+		ifstream f(originalFilePath, ios::binary);
 		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		//读入文件
@@ -213,19 +220,19 @@ namespace kgma {
 		f.close();
 
 		//临时文件
-		filesystem::path outputfile_path;
-		if (outputpath.empty())
+		filesystem::path tempFilePath;
+		if (outputPath.empty())
 		{
-			outputfile_path = CreateTempFile(filepath.parent_path());
+			tempFilePath = CreateTempFile(originalFilePath.parent_path());
 		}
 		else
 		{
-			outputfile_path = CreateTempFile(outputpath);
+			tempFilePath = CreateTempFile(outputPath);
 		}
-		ofstream fs(outputfile_path, ios::out | ios_base::binary);
+		ofstream fs(tempFilePath, ios::out | ios_base::binary);
 
 		//检查文件头
-		if (!CheakHeader(ms)) { f.close(); Save(filepath, ms, outputfile_path, fs); return; };
+		if (!CheakHeader(ms)) { f.close(); Save(originalFilePath, ms, tempFilePath, fs); return; };
 		//头部数据长度
 		int length = HeaderLength(ms);
 		//key
@@ -235,25 +242,8 @@ namespace kgma {
 		ms.seekg(length, ios_base::beg);
 		DecodeAudio(ms, fs, key);
 
-		auto info = GetMusicInfo(outputfile_path);
-		string name;
-
-		//空文件名处理
-		if ("" == info.musicName)
-		{
-			name = Utf8ToGbk("[未命名]" + string((char*)filepath.filename().u8string().c_str()) + "." + info.format);
-		}
-		else
-		{
-			name = Utf8ToGbk(info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
-		}
-		//将斜杆替换为全角字符,防止出错
-		name = replace_(name, "/", { char(-93),char(-81) });
-
-		filesystem::path save_path = outputfile_path.parent_path().append(name);
-
-		rename(outputfile_path, save_path);
-
+		auto info = GetMusicInfo(tempFilePath);
+		Rename(info, originalFilePath, tempFilePath);
 	}
 };
 

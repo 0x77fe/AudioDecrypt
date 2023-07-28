@@ -22,7 +22,6 @@ public:
 	//
 	QStandardItemModel _model;
 	vector<filesystem::path> _files;
-	bool th = false;
 	QFutureWatcher<bool> _thWatcher;
 
 public slots:
