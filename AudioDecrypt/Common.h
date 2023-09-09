@@ -53,7 +53,7 @@ vector<filesystem::path> SerchFiles(const filesystem::path& Dir, const vector<st
 //替换文本
 string replace_(string tarstr, const string& oldstr, const string& newstr)
 {
-	regex reg(oldstr);
+	regex reg("\\"+oldstr);
 	string replaced_str = regex_replace(tarstr, reg, newstr);
 	return replaced_str;
 }

@@ -187,8 +187,17 @@ namespace kgma {
 		{
 			name = (info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 		}
-		//将斜杆替换为全角字符,防止出错
+
+		//替换为全角字符,防止出错
+		name = replace_(name, "?", { "？" });
+		name = replace_(name, "*", { "＊" });
+		name = replace_(name, ":", { "：" });
+		name = replace_(name, "<", { "＜" });
+		name = replace_(name, ">", { "＞" });
 		name = replace_(name, "/", { "／" });
+		name = replace_(name, "\\", { "＼" });
+		name = replace_(name, "|", { "｜" });
+
 		//utf-8文件名
 		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		wstring wideFilename = converter.from_bytes(name);
