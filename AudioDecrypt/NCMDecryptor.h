@@ -12,6 +12,9 @@
 #include <taglib/attachedpictureframe.h>
 #include <taglib/flacfile.h>
 #include <taglib/flacpicture.h>
+#include <taglib/xiphcomment.h>
+#include <taglib/id3v2framefactory.h>
+#include <taglib/textidentificationframe.h>
 
 #include <filesystem>
 #include <fstream>
@@ -34,7 +37,7 @@ namespace ncm {
 	{
 		char magic_hander[10];
 		ms.read(magic_hander, 10);
-		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error( Utf8ToGbk("ncm已损坏或不是一个ncm文件")); }
+		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error(Utf8ToGbk("ncm已损坏或不是一个ncm文件")); }
 	}
 
 	string GetRC4Key(stringstream& ms)
@@ -54,6 +57,7 @@ namespace ncm {
 
 	musicInfo GetMusicInfo(stringstream& ms)
 	{
+		musicInfo inf;
 		int length = 0;//音乐信息长度
 		ms.read((char*)&length, 4);
 
@@ -63,14 +67,13 @@ namespace ncm {
 		{ //对每个字节与0x63进行异或
 			data[i] ^= 0x63;
 		}
+		inf.ncmkey = data;
 		data = data.substr(22);//去除前22位
 		data = base64_decode(data);//base64
 		string info = aes_ecb_decrypt(data, _info_key).substr(6);//aes后去除前6位
 
 		rapidjson::Document doc;
 		doc.Parse(info.c_str());
-
-		musicInfo inf;
 
 		//音乐名
 		if (doc.HasMember("musicName"))
@@ -94,6 +97,13 @@ namespace ncm {
 			{
 				inf.artist.push_back(artists[i][0].GetString());
 			}
+		}
+
+		//专辑
+		if (doc.HasMember("album"))
+		{
+			rapidjson::Value& a = doc["album"];
+			inf.album = a.GetString();
 		}
 
 		return inf;
@@ -159,32 +169,35 @@ namespace ncm {
 		using namespace TagLib;
 		if (info.format == "flac")
 		{
-			FLAC::File file(originalFilePath.c_str());
+			FLAC::File file(originalFilePath.c_str(), AudioProperties::Accurate);
+			auto img = new FLAC::Picture();
+			img->setData(ByteVector(info.cover.data(), info.cover.length()));
+			img->setMimeType("image/jpeg");
+			img->setType(FLAC::Picture::FrontCover);
+			file.addPicture(img);
+			auto xiph = file.xiphComment(true);
+			xiph->addField("DESCRIPTION", String(info.ncmkey, String::UTF8));
+			xiph->addField("ALBUM", String(info.album, String::UTF8));
+			xiph->addField("ARTIST", String(join(info.artist, ";"), String::UTF8));
 
-			auto pic = new FLAC::Picture();
-			pic->setData(ByteVector(info.cover.data(), info.cover.length()));
-			pic->setMimeType("image/jpeg");
-			pic->setType(TagLib::FLAC::Picture::FrontCover);
-
-			file.addPicture(pic);
 			file.save();
 		}
 		else
 		{
 			MPEG::File file(originalFilePath.c_str());
 			auto tag = file.ID3v2Tag(true);
-
-			auto frame = new ID3v2::AttachedPictureFrame();
-			frame->setMimeType("image/jpeg");
-			frame->setType(ID3v2::AttachedPictureFrame::FrontCover);
-			frame->setPicture(ByteVector(info.cover.data(), info.cover.length()));
-
+			auto img = new ID3v2::AttachedPictureFrame();
+			img->setMimeType("image/jpeg");
+			img->setType(ID3v2::AttachedPictureFrame::FrontCover);
+			img->setPicture(ByteVector(info.cover.data(), info.cover.length()));
 			tag->removeFrames("APIC");
-			tag->addFrame(frame);
+			tag->addFrame(img);
+			tag->setArtist(String(join(info.artist, ";"), String::UTF8));
+			tag->setComment(String(info.ncmkey, String::UTF8));
+			tag->setAlbum(String(info.album,String::UTF8));
 
 			file.save();
 		}
-
 	}
 
 
@@ -206,8 +219,8 @@ namespace ncm {
 		//获取封面
 		info.cover = GetImage(ms);
 
-
 		//拼接文件名
+		if (info.artist.size() > 3) { info.artist = { info.artist[0],info.artist[1],info.artist[2],"..." }; };
 		string name = (info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
 
 		//替换为全角字符,防止出错
@@ -219,6 +232,7 @@ namespace ncm {
 		name = replace_(name, "/", { "／" });
 		name = replace_(name, "\\", { "＼" });
 		name = replace_(name, "|", { "｜" });
+		name = replace_(name, "\"", "＂");
 
 		//utf-8文件名
 		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;

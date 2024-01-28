@@ -178,6 +178,10 @@ namespace kgma {
 	void Rename(const musicInfo& info, const filesystem::path& originalFilePath, const filesystem::path& tempFilePath)
 	{
 		string name;
+		vector<string> artist;
+		if (info.artist.size() > 3) { artist = { info.artist[0],info.artist[1],info.artist[2],"..." }; }
+		else { artist = info.artist; };
+
 		//空文件名处理
 		if ("" == info.musicName)
 		{
@@ -185,7 +189,7 @@ namespace kgma {
 		}
 		else
 		{
-			name = (info.musicName + " - " + join(info.artist, (string)",") + "." + info.format);
+			name = (info.musicName + " - " + join(artist, (string)",") + "." + info.format);
 		}
 
 		//替换为全角字符,防止出错
@@ -197,6 +201,7 @@ namespace kgma {
 		name = replace_(name, "/", { "／" });
 		name = replace_(name, "\\", { "＼" });
 		name = replace_(name, "|", { "｜" });
+		name = replace_(name, "\"", "＂");
 
 		//utf-8文件名
 		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
