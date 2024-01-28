@@ -29,6 +29,8 @@ struct musicInfo
 	string format;
 	vector<string> artist;
 	string cover;
+	string ncmkey;
+	string album;
 };
 
 //flac文件头
@@ -59,10 +61,10 @@ string replace_(string tarstr, const string& oldstr, const string& newstr)
 }
 
 //拼接数组
-template<typename T, typename E>
-E join(T list, E split)
+template<typename T>
+string join(T list, string split)
 {
-	E out;
+	string out;
 	for (int i = 0; i < list.size() - 1; i++)
 	{
 		out += list[i] + split;

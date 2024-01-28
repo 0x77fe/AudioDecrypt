@@ -5,8 +5,6 @@
 #include <QtConcurrent/QtConcurrent>
 #include <exception>
 
-
-
 AudioDecrypt::AudioDecrypt(QWidget* parent)
 	: QMainWindow(parent)
 {
@@ -17,6 +15,7 @@ AudioDecrypt::AudioDecrypt(QWidget* parent)
 	QObject::connect(ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
 	//
 	QObject::connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
+
 }
 
 AudioDecrypt::~AudioDecrypt()
@@ -44,43 +43,44 @@ void AudioDecrypt::StartProcess()
 	Addlog("线程开始");
 
 	auto action = [this, skip, use, del, savedir, files]()
-	{
-		bool r = true;
-		for (const auto& file : *files)
 		{
-			try {
-				emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
-				DecodeFactory(file, savedir, skip);
-				emit SignalAddlog(" ... [完成] ", "\n", false);
-				if (del) { remove(file); }
+			bool r = true;
+			for (const auto& file : *files)
+			{
+				try {
+					emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
+					DecodeFactory(file, savedir, skip);
+					emit SignalAddlog(" ... [完成] ", "\n", false);
+					if (del) { remove(file); }
+				}
+				catch (exception e)
+				{
+					emit SignalAddlog("失败:" + QString::fromLocal8Bit(e.what()));
+					r = false;
+				};
+			};
+			return r;
+		};
+
+	auto ProcessFinished = [this]()
+		{
+			try
+			{
+				if (!_thWatcher.result())
+				{
+					emit SignalAddlog("处理文件时发生了错误,请检查.");
+				};
 			}
 			catch (exception e)
 			{
-				emit SignalAddlog("失败:" + QString::fromLocal8Bit(e.what()));
-				r = false;
+				emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
 			};
+			_files = vector<filesystem::path>();
+			_model.clear();
+			emit SignalAddlog("全部处理完成 线程结束\n");
 		};
-		return r;
-	};
-	auto end = [this]()
-	{
-		try
-		{
-			if (!_thWatcher.result())
-			{
-				emit SignalAddlog("处理文件时发生了错误,请检查.");
-			};
-		}
-		catch (exception e)
-		{
-			emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
-		};
-		_files = vector<filesystem::path>();
-		_model.clear();
-		emit SignalAddlog("全部处理完成 线程结束");
-	};
 	auto fut = QtConcurrent::run(action);
-	connect(&_thWatcher, &QFutureWatcher<bool>::finished, end);
+	if (not isConnected) { QObject::connect(&_thWatcher, &QFutureWatcher<bool>::finished, this, ProcessFinished); isConnected = true; }
 	_thWatcher.setFuture(fut);
 }
 

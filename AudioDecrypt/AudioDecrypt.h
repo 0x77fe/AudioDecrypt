@@ -24,6 +24,9 @@ public:
 	vector<filesystem::path> _files;
 	QFutureWatcher<bool> _thWatcher;
 
+	//
+	bool isConnected = false;
+
 public slots:
 	void Addlog(QString Info, QString End = "\n", bool Time = true);
 signals:
