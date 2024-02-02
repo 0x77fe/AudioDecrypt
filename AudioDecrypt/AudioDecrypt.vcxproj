@@ -199,13 +199,14 @@
     <QtUic Include="AudioDecrypt.ui" />
     <QtMoc Include="AudioDecrypt.h" />
     <ClCompile Include="AudioDecrypt.cpp" />
+    <ClCompile Include="DecodeFactory.cpp" />
     <ClCompile Include="main.cpp" />
     <None Include="AudioDecrypt.ico" />
     <ResourceCompile Include="AudioDecrypt.rc" />
-    <ClInclude Include="all.h" />
+    <QtMoc Include="DecodeFactory.h" />
     <ClInclude Include="Cde.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="KGMADecoder.h" />
+    <ClInclude Include="KGMADecoder.cpp" />
     <ClInclude Include="NCMDecryptor.h" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="stdafx.cpp">

@@ -1,7 +1,4 @@
 #pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/tpropertymap.h>
@@ -24,8 +21,6 @@
 
 #include "Cde.h"
 
-#include "Common.h"
-
 using namespace std;
 
 namespace ncm {
@@ -33,11 +28,23 @@ namespace ncm {
 	constexpr static const char _info_key[] = { 0x23,0x31,0x34,0x6C,0x6A,0x6B,0x5F,0x21,0x5C,0x5D,0x26,0x30,0x55,0x3C,0x27,0x28 };//"#14ljk_!\]&0U<'(";//163key
 	constexpr static const char _core_key[] = { 0x68,0x7A,0x48,0x52,0x41,0x6D,0x73,0x6F,0x35,0x6B,0x49,0x6E,0x62,0x61,0x78,0x57 };//"hzHRAmso5kInbaxW";//rc4corekey
 
+	template<typename T>
+	string join(T list, string split)
+	{
+		string out;
+		for (int i = 0; i < list.size() - 1; i++)
+		{
+			out += list[i] + split;
+		}
+		out += list[list.size() - 1];
+		return out;
+	}
+
 	void CheakHeader(stringstream& ms)
 	{
 		char magic_hander[10];
 		ms.read(magic_hander, 10);
-		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error(Utf8ToGbk("ncm已损坏或不是一个ncm文件")); }
+		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error("ncm已损坏或不是一个ncm文件"); }
 	}
 
 	string GetRC4Key(stringstream& ms)
@@ -194,7 +201,7 @@ namespace ncm {
 			tag->addFrame(img);
 			tag->setArtist(String(join(info.artist, ";"), String::UTF8));
 			tag->setComment(String(info.ncmkey, String::UTF8));
-			tag->setAlbum(String(info.album,String::UTF8));
+			tag->setAlbum(String(info.album, String::UTF8));
 
 			file.save();
 		}
@@ -204,7 +211,7 @@ namespace ncm {
 	void Decrypt(const filesystem::path& originalFilePath, filesystem::path& outputPath = *new filesystem::path(), bool skip = false)
 	{
 		ifstream f(originalFilePath, ios::binary);
-		if (!f) { throw runtime_error(Utf8ToGbk("打开文件失败")); return; };
+		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		stringstream ms;
 		ms << f.rdbuf();
@@ -253,7 +260,7 @@ namespace ncm {
 
 		//正式解密文件
 		ofstream file(outoriginalFilePath, ios::out | ios::binary);
-		if (!file.good()) { throw runtime_error(Utf8ToGbk("写文件错误")); }
+		if (!file.good()) { throw runtime_error("写文件错误"); }
 		DecodeAudio(ms, file, RC4_key);
 
 		SetMusicInfo(outoriginalFilePath, info);

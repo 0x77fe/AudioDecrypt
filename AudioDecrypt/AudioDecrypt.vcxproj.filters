@@ -55,6 +55,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DecodeFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -66,11 +69,13 @@
     <ClInclude Include="Cde.h">
       <Filter>Header Files\Decryptor</Filter>
     </ClInclude>
-    <ClInclude Include="KGMADecoder.h">
-      <Filter>Header Files\Decryptor</Filter>
+    <ClInclude Include="KGMADecoder.cpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="all.h">
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="DecodeFactory.h">
       <Filter>Header Files\Decryptor</Filter>
-    </ClInclude>
+    </QtMoc>
   </ItemGroup>
 </Project>

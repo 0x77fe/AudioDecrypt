@@ -1,7 +1,4 @@
 ﻿#pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -72,52 +69,6 @@ string join(T list, string split)
 	out += list[list.size() - 1];
 	return out;
 }
-
-//win下的字符转换
-#ifdef WIN32
-#include <Windows.h>
-string Utf8ToGbk(const string& utf8_str)
-{
-	// 将UTF-8编码的字符串转换为UTF-16编码的字符串
-	int utf16_length = MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, nullptr, 0);
-	wchar_t* utf16_buffer = new wchar_t[utf16_length];
-	MultiByteToWideChar(CP_UTF8, 0, utf8_str.c_str(), -1, utf16_buffer, utf16_length);
-
-	// 将UTF-16编码的字符串转换为GBK编码的字符串
-	int gbk_length = WideCharToMultiByte(CP_ACP, 0, utf16_buffer, -1, nullptr, 0, nullptr, nullptr);
-	char* gbk_buffer = new char[gbk_length];
-	WideCharToMultiByte(CP_ACP, 0, utf16_buffer, -1, gbk_buffer, gbk_length, nullptr, nullptr);
-
-	string result(gbk_length, '\0');
-	memcpy(result.data(), gbk_buffer, gbk_length);
-	delete[] gbk_buffer, utf16_buffer;
-	return result;
-}
-string GbkToUtf8(const std::string& gbkStr)
-{
-	int len = MultiByteToWideChar(CP_ACP, 0, gbkStr.c_str(), -1, NULL, 0);
-	wchar_t* wstr = new wchar_t[len];
-	MultiByteToWideChar(CP_ACP, 0, gbkStr.c_str(), -1, wstr, len);
-
-	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
-	char* utf8Str = new char[len];
-	WideCharToMultiByte(CP_UTF8, 0, wstr, -1, utf8Str, len, NULL, NULL);
-
-	std::string result(utf8Str);
-	delete[] wstr;
-	delete[] utf8Str;
-	return result;
-}
-#else
-string Utf8ToGbk(const string& utf8_str)
-{
-	return utf8_str;
-}
-string GbkToUtf8(const std::string& gbkStr)
-{
-	return gbkStr;
-}
-#endif // WIN32
 
 //创建临时文件
 filesystem::path CreateTempFile(filesystem::path indir)
