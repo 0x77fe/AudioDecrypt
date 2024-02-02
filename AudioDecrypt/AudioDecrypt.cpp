@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "AudioDecrypt.h"
-#include "all.h"
+#include "DecodeFactory.h"
 #include <future>
 #include <QtConcurrent/QtConcurrent>
 #include <exception>
@@ -55,7 +55,7 @@ void AudioDecrypt::StartProcess()
 				}
 				catch (exception e)
 				{
-					emit SignalAddlog("失败:" + QString::fromLocal8Bit(e.what()));
+					emit SignalAddlog("失败:" + QString::fromUtf8(e.what()));
 					r = false;
 				};
 			};
@@ -73,7 +73,7 @@ void AudioDecrypt::StartProcess()
 			}
 			catch (exception e)
 			{
-				emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromLocal8Bit(e.what()));
+				emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromUtf8(e.what()));
 			};
 			_files = vector<filesystem::path>();
 			_model.clear();

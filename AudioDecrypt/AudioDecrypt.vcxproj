@@ -202,7 +202,7 @@
     <ClCompile Include="main.cpp" />
     <None Include="AudioDecrypt.ico" />
     <ResourceCompile Include="AudioDecrypt.rc" />
-    <ClInclude Include="all.h" />
+    <QtMoc Include="DecodeFactory.h" />
     <ClInclude Include="Cde.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="KGMADecoder.h" />

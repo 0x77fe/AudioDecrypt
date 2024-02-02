@@ -69,8 +69,10 @@
     <ClInclude Include="KGMADecoder.h">
       <Filter>Header Files\Decryptor</Filter>
     </ClInclude>
-    <ClInclude Include="all.h">
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="DecodeFactory.h">
       <Filter>Header Files\Decryptor</Filter>
-    </ClInclude>
+    </QtMoc>
   </ItemGroup>
 </Project>

@@ -1,12 +1,7 @@
 #pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <cstdio>
-#include <codecvt>
 
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
