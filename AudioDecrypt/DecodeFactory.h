@@ -29,10 +29,10 @@ public:
 	}
 
 	~Decrypter()
-	{
+		{
 		_thread.exit();
 		_thread.wait();
-	}
+		}
 
 	void KGMADecrypter(const filesystem::path& originalFilePath);
 
@@ -40,9 +40,9 @@ public:
 	{
 		if (filename.extension().string() == ".ncm")
 		{
-		}
+	}
 		else if (filename.extension().string() == ".kgm" or filename.extension().string() == ".kgma")
-		{
+	{
 		}
 	}
 };
@@ -70,4 +70,24 @@ public:
 			_tasks.push(file);
 		}
 	}
+
+	void Run()
+	{
+
+	}
+
 };
+
+void DecodeFactory(const filesystem::path& filename, filesystem::path outputpath = *new filesystem::path(), bool skip = false)
+{
+	{
+		if (filename.extension().string() == ".ncm")
+		{
+			ncm::Decrypt(filename, outputpath, skip);
+		}
+		else if (filename.extension().string() == ".kgm" or filename.extension().string() == ".kgma")
+		{
+			kgma::Decrypt(filename, outputpath, skip);
+		}
+	}
+}
