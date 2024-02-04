@@ -5,9 +5,12 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <codecvt>
+
 #include "Common.h"
 
 using namespace std;
+
 
 string aes_ecb_decrypt(const string& cipherText, const string& key)
 {

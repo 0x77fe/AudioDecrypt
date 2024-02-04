@@ -1,14 +1,13 @@
-﻿#pragma once
-#include <string>
-#include <vector>
+#pragma once
 #include <filesystem>
 #include <regex>
-#include <locale>
-#include <codecvt>
+#include <string>
+#include <vector>
+#include <fstream>
 
 using namespace std;
-//
 
+//判断是否存在某元素
 template <typename T>
 bool has(const vector<T>& list, const T& obj)
 {
@@ -22,12 +21,12 @@ bool has(const vector<T>& list, const T& obj)
 //音乐信息
 struct musicInfo
 {
-	string musicName;
-	string format;
-	vector<string> artist;
-	string cover;
-	string ncmkey;
-	string album;
+	std::string musicName;
+	std::string format;
+	std::vector<string> artist;
+	std::string cover;
+	std::string ncmkey;
+	std::string album;
 };
 
 //flac文件头
@@ -52,7 +51,7 @@ vector<filesystem::path> SerchFiles(const filesystem::path& Dir, const vector<st
 //替换文本
 string replace_(string tarstr, const string& oldstr, const string& newstr)
 {
-	regex reg("\\"+oldstr);
+	regex reg("\\" + oldstr);
 	string replaced_str = regex_replace(tarstr, reg, newstr);
 	return replaced_str;
 }
@@ -74,7 +73,7 @@ string join(T list, string split)
 filesystem::path CreateTempFile(filesystem::path indir)
 {
 	int pos = 100;
-	string pat;
+	string pat = "";
 	string org = indir.string();
 	if (('\\' == org[org.size() - 1]) or ('/' == org[org.size() - 1]))
 	{

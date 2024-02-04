@@ -1,9 +1,10 @@
 ﻿#include "stdafx.h"
-#include "AudioDecrypt.h"
-#include "DecodeFactory.h"
 #include <future>
 #include <QtConcurrent/QtConcurrent>
 #include <exception>
+
+#include "DecryptFactory.h"
+#include "AudioDecrypt.h"
 
 AudioDecrypt::AudioDecrypt(QWidget* parent)
 	: QMainWindow(parent)
@@ -31,7 +32,6 @@ void AudioDecrypt::StartProcess()
 	//线程运行中
 	if (_thWatcher.isRunning()) { return; }
 
-	bool skip = ui.checkBox_skip->checkState();
 	bool use = ui.checkBox_useSaveDir->checkState();
 	bool del = ui.checkBox_delete->checkState();
 	auto files = &_files;
@@ -42,14 +42,14 @@ void AudioDecrypt::StartProcess()
 
 	Addlog("线程开始");
 
-	auto action = [this, skip, use, del, savedir, files]()
+	auto action = [this, use, del, savedir, files]()
 		{
 			bool r = true;
 			for (const auto& file : *files)
 			{
 				try {
 					emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
-					DecodeFactory(file, savedir, skip);
+					//DecodeFactory(file, savedir, skip);
 					emit SignalAddlog(" ... [完成] ", "\n", false);
 					if (del) { remove(file); }
 				}
