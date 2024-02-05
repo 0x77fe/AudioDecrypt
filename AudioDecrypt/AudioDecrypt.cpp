@@ -3,7 +3,6 @@
 #include <QtConcurrent/QtConcurrent>
 #include <exception>
 
-#include "DecryptFactory.h"
 #include "AudioDecrypt.h"
 
 AudioDecrypt::AudioDecrypt(QWidget* parent)
@@ -29,65 +28,26 @@ void AudioDecrypt::StartProcess()
 		Addlog("未搜索文件或未找到文件");
 		return;
 	}
-	//线程运行中
-	if (_thWatcher.isRunning()) { return; }
-
-	bool use = ui.checkBox_useSaveDir->checkState();
-	bool del = ui.checkBox_delete->checkState();
-	auto files = &_files;
 
 	filesystem::path savedir;
-	if (use) { savedir = ui.lineEdit_saveDir->text().toLocal8Bit().constData(); }
+	if (ui.checkBox_useSaveDir->checkState()) { savedir = ui.lineEdit_saveDir->text().toLocal8Bit().constData(); }
 	else { savedir = filesystem::path(); }
 
 	Addlog("线程开始");
+	_Factory.SetOutputPath(savedir);
+	_Factory.SetThreadAmount(ui.spinBox_threadCount->value());
+	_Factory.EnDel(ui.checkBox_delete->checkState());
+	_Factory.EnWite163Key(ui.checkBox_write163Key->checkState());
 
-	auto action = [this, use, del, savedir, files]()
-		{
-			bool r = true;
-			for (const auto& file : *files)
-			{
-				try {
-					emit SignalAddlog("正在处理 " + QString::fromWCharArray(file.filename().wstring().c_str()));
-					//DecodeFactory(file, savedir, skip);
-					emit SignalAddlog(" ... [完成] ", "\n", false);
-					if (del) { remove(file); }
-				}
-				catch (exception e)
-				{
-					emit SignalAddlog("失败:" + QString::fromUtf8(e.what()));
-					r = false;
-				};
-			};
-			return r;
-		};
-
-	auto ProcessFinished = [this]()
-		{
-			try
-			{
-				if (!_thWatcher.result())
-				{
-					emit SignalAddlog("处理文件时发生了错误,请检查.");
-				};
-			}
-			catch (exception e)
-			{
-				emit SignalAddlog("线程发生致命错误,无法继续 " + QString::fromUtf8(e.what()));
-			};
-			_files = vector<filesystem::path>();
-			_model.clear();
-			emit SignalAddlog("全部处理完成 线程结束\n");
-		};
-	auto fut = QtConcurrent::run(action);
-	if (not isConnected) { QObject::connect(&_thWatcher, &QFutureWatcher<bool>::finished, this, ProcessFinished); isConnected = true; }
-	_thWatcher.setFuture(fut);
+	_Factory.Add(_files);
+	_files.clear();
+	_model.clear();
+	ui.listView_originalFiles->setModel(&_model);
 }
 
 void AudioDecrypt::SelectDir()
 {
 	//线程运行中
-	if (_thWatcher.isRunning()) { return; }
 	_files = vector<filesystem::path>();
 	_model.clear();
 	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
@@ -130,4 +90,9 @@ void AudioDecrypt::Addlog(QString Info, QString End, bool Time)
 	QTextCursor textCursor = ui.textEdit_log->textCursor();
 	textCursor.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
 	ui.textEdit_log->setTextCursor(textCursor);
+}
+
+void AudioDecrypt::Log(QString info)
+{
+	Addlog(info);
 }

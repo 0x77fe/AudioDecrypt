@@ -196,7 +196,7 @@ void SetMusicInfo(filesystem::path& originalFilePath, musicInfo& info, bool writ
 }
 
 
-void Decryptor::NCMDecryptor(const filesystem::path& originalFilePath) const
+void DecryptFactory::NCMDecryptor(const filesystem::path& originalFilePath) const
 {
 	ifstream f(originalFilePath, ios::binary);
 	if (!f) { throw runtime_error("打开文件失败"); return; };
@@ -244,9 +244,6 @@ void Decryptor::NCMDecryptor(const filesystem::path& originalFilePath) const
 	{
 		outoriginalFilePath = outputPath.append("\\").append(wideFilename);
 	}
-	ifstream infile(outoriginalFilePath);
-	if ((!infile.good())) { return; }
-	infile.close();
 
 	//正式解密文件
 	ofstream file(outoriginalFilePath, ios::out | ios::binary);

@@ -221,7 +221,7 @@ void Save(const filesystem::path& originalFilePath, stringstream& ms, const file
 	Rename(info, originalFilePath, tempFilePath);
 }
 
-void Decryptor::KGMADecryptor(const filesystem::path& originalFilePath) const
+void DecryptFactory::KGMADecryptor(const filesystem::path& originalFilePath) const
 {
 	ifstream f(originalFilePath, ios::binary);
 	if (!f) { throw runtime_error("打开文件失败"); return; };
