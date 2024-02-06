@@ -24,6 +24,9 @@
     <Filter Include="Header Files\Decryptor">
       <UniqueIdentifier>{f76b1cfd-e3c4-42a0-9897-85d7b7183ae1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Decryptor">
+      <UniqueIdentifier>{d8536e69-76db-4594-8420-dfaaf366a6bf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="AudioDecrypt.qrc">
@@ -55,21 +58,23 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Decryptor\KGMADecryptor.cpp">
+      <Filter>Source Files\Decryptor</Filter>
+    </ClCompile>
+    <ClCompile Include="Decryptor\NCMDecryptor.cpp">
+      <Filter>Source Files\Decryptor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NCMDecryptor.h">
+    <QtMoc Include="Decryptor\DecryptFactory.h">
+      <Filter>Header Files\Decryptor</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Decryptor\Common.h">
       <Filter>Header Files\Decryptor</Filter>
     </ClInclude>
-    <ClInclude Include="Cde.h">
-      <Filter>Header Files\Decryptor</Filter>
-    </ClInclude>
-    <ClInclude Include="KGMADecoder.h">
-      <Filter>Header Files\Decryptor</Filter>
-    </ClInclude>
-    <ClInclude Include="all.h">
+    <ClInclude Include="Decryptor\Cde.h">
       <Filter>Header Files\Decryptor</Filter>
     </ClInclude>
   </ItemGroup>

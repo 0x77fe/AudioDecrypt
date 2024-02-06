@@ -1,12 +1,6 @@
-#pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <cstdio>
-#include <codecvt>
 
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
@@ -18,10 +12,16 @@
 #include <taglib/attachedpictureframe.h>
 #include <taglib/flacfile.h>
 #include <taglib/flacpicture.h>
+#include <taglib/xiphcomment.h>
+#include <taglib/id3v2framefactory.h>
+#include <taglib/textidentificationframe.h>
+
+#include "Cde.h"
 
 using namespace std;
-namespace kgma {
 
+class KGMA
+{
 	enum MType { VPR, OTHER };
 
 	MType H;
@@ -223,7 +223,8 @@ namespace kgma {
 		Rename(info, originalFilePath, tempFilePath);
 	}
 
-	void Decrypt(const filesystem::path& originalFilePath, filesystem::path& outputPath = *new filesystem::path(), bool skip = false)
+public:
+	void KGMADecrypt(const filesystem::path& originalFilePath, filesystem::path _outputPath)
 	{
 		ifstream f(originalFilePath, ios::binary);
 		if (!f) { throw runtime_error("打开文件失败"); return; };
@@ -235,13 +236,13 @@ namespace kgma {
 
 		//临时文件
 		filesystem::path tempFilePath;
-		if (outputPath.empty())
+		if (_outputPath.empty())
 		{
 			tempFilePath = CreateTempFile(originalFilePath.parent_path());
 		}
 		else
 		{
-			tempFilePath = CreateTempFile(outputPath);
+			tempFilePath = CreateTempFile(_outputPath);
 		}
 		ofstream fs(tempFilePath, ios::out | ios_base::binary);
 
@@ -260,4 +261,3 @@ namespace kgma {
 		Rename(info, originalFilePath, tempFilePath);
 	}
 };
-

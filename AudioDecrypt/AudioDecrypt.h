@@ -1,9 +1,9 @@
 #pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
+
 #include <QtWidgets/QMainWindow>
+
 #include "ui_AudioDecrypt.h"
+#include "Decryptor/DecryptFactory.h"
 
 using namespace std;
 
@@ -14,21 +14,20 @@ class AudioDecrypt : public QMainWindow
 public:
 	AudioDecrypt(QWidget* parent = nullptr);
 	~AudioDecrypt();
-	//
 	void StartProcess();
 	void SelectDir();
 	void SelectSaveDir();
 
-	//
 	QStandardItemModel _model;
 	vector<filesystem::path> _files;
-	QFutureWatcher<bool> _thWatcher;
+	DecryptFactory _Factory = DecryptFactory(8);
 
 	//
 	bool isConnected = false;
 
 public slots:
 	void Addlog(QString Info, QString End = "\n", bool Time = true);
+	void Finished(QString info);
 signals:
 	void SignalAddlog(QString Info, QString End = "\n", bool Time = true);
 
