@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <qstring>
 
 using namespace std;
 
@@ -64,6 +65,18 @@ string join(T list, string split)
 	for (int i = 0; i < list.size() - 1; i++)
 	{
 		out += list[i] + split;
+	}
+	out += list[list.size() - 1];
+	return out;
+}
+
+template<typename T>
+QString Qjoin(T list, string split)
+{
+	QString out;
+	for (int i = 0; i < list.size() - 1; i++)
+	{
+		out += list[i] + QString::fromUtf8(split);
 	}
 	out += list[list.size() - 1];
 	return out;

@@ -10,12 +10,13 @@ AudioDecrypt::AudioDecrypt(QWidget* parent)
 {
 	ui.setupUi(this);
 	//
-	QObject::connect(ui.pushButton_startProcess, &QPushButton::clicked, this, &AudioDecrypt::StartProcess);
-	QObject::connect(ui.pushButton_selsctDir, &QPushButton::clicked, this, &AudioDecrypt::SelectDir);
-	QObject::connect(ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
+	connect(this->ui.pushButton_startProcess, &QPushButton::clicked, this, &AudioDecrypt::StartProcess);
+	connect(this->ui.pushButton_selsctDir, &QPushButton::clicked, this, &AudioDecrypt::SelectDir);
+	connect(this->ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
 	//
-	QObject::connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
-
+	connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
+	connect(&this->_Factory, &DecryptFactory::sigSingleFinished, this, &AudioDecrypt::Finished);
+	connect(&this->_Factory, &DecryptFactory::sigAllFinished, this, &AudioDecrypt::Finished);
 }
 
 AudioDecrypt::~AudioDecrypt()
@@ -23,76 +24,96 @@ AudioDecrypt::~AudioDecrypt()
 
 void AudioDecrypt::StartProcess()
 {
-	if (_model.rowCount() == 0)
+	if (this->_model.rowCount() == 0)
 	{
 		Addlog("未搜索文件或未找到文件");
 		return;
 	}
 
 	filesystem::path savedir;
-	if (ui.checkBox_useSaveDir->checkState()) { savedir = ui.lineEdit_saveDir->text().toLocal8Bit().constData(); }
+	if (this->ui.checkBox_useSaveDir->checkState()) 
+	{ 
+		savedir = this->ui.lineEdit_saveDir->text().toLocal8Bit().constData();
+	}
 	else { savedir = filesystem::path(); }
 
-	Addlog("线程开始");
-	_Factory.SetOutputPath(savedir);
-	_Factory.SetThreadAmount(ui.spinBox_threadCount->value());
-	_Factory.EnDel(ui.checkBox_delete->checkState());
-	_Factory.EnWite163Key(ui.checkBox_write163Key->checkState());
+	this->Addlog("线程开始");
+	this->_Factory.SetOutputPath(savedir);
+	this->_Factory.SetThreadAmount(ui.spinBox_threadCount->value());
+	this->_Factory.EnDel(ui.checkBox_delete->checkState());
+	this->_Factory.EnWite163Key(ui.checkBox_write163Key->checkState());
 
-	_Factory.Add(_files);
-	_files.clear();
-	_model.clear();
-	ui.listView_originalFiles->setModel(&_model);
+	this->_Factory.Add(_files);
+
+	this->_files.clear();
+	this->_model.clear();
+	this->ui.listView_originalFiles->setModel(&_model);
 }
 
 void AudioDecrypt::SelectDir()
 {
-	//线程运行中
-	_files = vector<filesystem::path>();
-	_model.clear();
+	//重置
+	this->_files.clear();
+	this->_model.clear();
+
+	//选择文件夹
 	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
 	if (folderPath.isEmpty()) { return; }
 	string Dir = folderPath.toStdString();
-	ui.lineEdit_originalDir->setText(folderPath);
+	this->ui.lineEdit_originalDir->setText(folderPath);
 
-	_files = SerchFiles(ui.lineEdit_originalDir->text().toLocal8Bit().constData(), vector<string>{".ncm", ".kgm", ".kgma"});
-	for (const auto& file : _files) {
-		auto item = new QStandardItem(QString::fromWCharArray(file.filename().wstring().c_str()));
-		_model.appendRow(item);
+	//遍历搜索
+	_files = SerchFiles
+	(
+		this->ui.lineEdit_originalDir->text().toLocal8Bit().constData(),
+		vector<string>{".ncm", ".kgm", ".kgma"}
+	);
+
+	//注入模型
+	for (const auto& file : this->_files) 
+	{
+		auto item = new QStandardItem(QString::fromStdWString(file.filename().wstring()));
+		this->_model.appendRow(item);
 	}
 
-	ui.listView_originalFiles->setModel(&_model);
-	Addlog(QString("找到了 ").append(to_string(_files.size()).c_str()) + " 个文件");
+	//设置ui'
+	this->ui.listView_originalFiles->setModel(&_model);
+	this->Addlog(QString::fromUtf8("找到了 ")+QString::fromUtf8(to_string(_files.size()) + " 个文件"));
 }
 
 void AudioDecrypt::SelectSaveDir()
 {
-	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
+	auto folderPath = QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 	if (folderPath.isEmpty()) { return; }
 	string Dir = folderPath.toStdString();
-	ui.lineEdit_saveDir->setText(folderPath);
+	this->ui.lineEdit_saveDir->setText(folderPath);
 }
 
 void AudioDecrypt::Addlog(QString Info, QString End, bool Time)
 {
+	//获取系统时间文本
 	char buffer[20]{ '\0' };
 	QString time_(" ");
 	if (Time)
 	{
 		time_t now = time(nullptr);
 		char buffer[80];
-		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-		time_.append("[").append(buffer).append("]");
+		strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
+		time_+="["+QString::fromLocal8Bit(buffer)+"]";
 	}
 
-	auto text = ui.textEdit_log->toPlainText() + time_ + Info + End;
-	ui.textEdit_log->setText(text);
-	QTextCursor textCursor = ui.textEdit_log->textCursor();
+	auto text = this->ui.textEdit_log->toPlainText() + time_ + Info + End;
+
+	//设置ui
+	this->ui.textEdit_log->setText(text);
+
+	//自动滑动到文本框底部
+	QTextCursor textCursor = this->ui.textEdit_log->textCursor();
 	textCursor.movePosition(QTextCursor::End, QTextCursor::MoveAnchor);
-	ui.textEdit_log->setTextCursor(textCursor);
+	this->ui.textEdit_log->setTextCursor(textCursor);
 }
 
-void AudioDecrypt::Log(QString info)
+void AudioDecrypt::Finished(QString info)
 {
 	Addlog(info);
 }

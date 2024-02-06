@@ -164,7 +164,7 @@ class NCM
 		using namespace TagLib;
 		if (info.format == "flac")
 		{
-			FLAC::File file(originalFilePath.c_str(), AudioProperties::Accurate);
+			FLAC::File file(originalFilePath.c_str());
 			auto img = new FLAC::Picture();
 			img->setData(ByteVector(info.cover.data(), info.cover.length()));
 			img->setMimeType("image/jpeg");
@@ -242,7 +242,7 @@ public:
 		}
 		else
 		{
-			outoriginalFilePath = outputPath.append("\\").append(wideFilename);
+			outoriginalFilePath = outputPath.wstring() + (L"\\" + wideFilename);
 		}
 
 		//正式解密文件

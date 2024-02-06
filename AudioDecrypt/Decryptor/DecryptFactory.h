@@ -51,11 +51,11 @@ public slots:
 		{
 			if (filepath.extension().string() == ".ncm")
 			{
-				ncm.NCMDecrypt(filepath,_write163Key,_outputPath);
+				ncm.NCMDecrypt(filepath, _write163Key, _outputPath);
 			}
 			else if (filepath.extension().string() == ".kgm" or filepath.extension().string() == ".kgma")
 			{
-				kgma.KGMADecrypt(filepath,_outputPath);
+				kgma.KGMADecrypt(filepath, _outputPath);
 			}
 			this->_finished = true;
 			emit sigFinished(this->_count, filepath);
@@ -87,7 +87,9 @@ class DecryptFactory : public QObject
 
 private:
 	queue<filesystem::path> _tasks;//全部音频文件
+	vector<filesystem::path> _files;
 	int _threadCount = 8;
+	vector<QString> _errs;
 	QList<DecryptThread*> _decryptor;
 	QList<QThread*> _threads;
 
@@ -154,7 +156,7 @@ public:
 
 	void SetOutputPath(filesystem::path outputPath)
 	{
-		this->_outputPath = outputPath;
+		this->_outputPath = outputPath.generic_wstring();
 	}
 
 	void EnWite163Key(bool write163Key)
@@ -169,13 +171,15 @@ public:
 
 	void Add(vector<filesystem::path> files)
 	{
-		for (auto& file : files)
+		this->_files = files;
+		for (auto& file : this->_files)
 		{
 			this->_tasks.push(file);
 		}
 		for (auto de : this->_decryptor)
 		{
 			if (this->_tasks.empty()) { return; };
+			if (!de->_finished) { continue; }
 			de->sigDecrypt(this->_tasks.front());
 			this->_tasks.pop();
 		}
@@ -187,6 +191,7 @@ public slots:
 	{
 		auto info = QString::fromUtf8("线程" + to_string(thCount) + "处理完毕: ") + QString::fromStdWString(path.filename().wstring());
 		emit sigSingleFinished(info);
+
 		//创建或删除线程
 		if (this->_threads.size() < this->_threadCount)
 		{
@@ -204,16 +209,39 @@ public slots:
 		}
 
 		//为所有线程发放任务
+		bool end = true;
+		for (auto de : this->_decryptor)
+		{
+			if (!de->_finished) { continue; }
+			if (this->_tasks.empty()) { continue; };
+			end = false;
+			de->sigDecrypt(this->_tasks.front());
+			this->_tasks.pop();
+		}
 
+		//无更多任务
+		for (auto de : this->_decryptor)
+		{
+			if (!de->_finished) { end = false; }
+		}
+
+		if (end)
+		{
+			auto info = QString::fromUtf8("所有线程处理完毕\n");
+			if (!this->_errs.empty()) info += (QString::fromUtf8("处理时发生了一些意外:\n") + Qjoin(this->_errs, "\n"));
+			emit sigAllFinished(info);
+		};
 	}
 
 	void ThreadErr(int thCount, filesystem::path path, QString e)
 	{
-
+		auto info = 
+			QString::fromUtf8("线程" + to_string(thCount) + "处理 \"") +
+			QString::fromStdWString(path.filename().wstring()) +
+			QString::fromUtf8("\"s时出现错误:\n  ") + e;
 	}
 
 signals:
 	void sigSingleFinished(QString info);
 	void sigAllFinished(QString info);
-
 };
