@@ -14,22 +14,17 @@ class AudioDecrypt : public QMainWindow
 public:
 	AudioDecrypt(QWidget* parent = nullptr);
 	~AudioDecrypt();
-	//
 	void StartProcess();
 	void SelectDir();
 	void SelectSaveDir();
 
-	//
 	QStandardItemModel _model;
 	vector<filesystem::path> _files;
 	DecryptFactory _Factory = DecryptFactory(8);
 
-	//
-	bool _isConnected = false;
-
 public slots:
 	void Addlog(QString Info, QString End = "\n", bool Time = true);
-	void Log(QString info);
+	void Finished(QString info);
 signals:
 	void SignalAddlog(QString Info, QString End = "\n", bool Time = true);
 
