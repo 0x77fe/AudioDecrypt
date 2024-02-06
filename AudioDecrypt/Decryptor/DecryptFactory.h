@@ -180,7 +180,7 @@ public:
 		{
 			if (this->_tasks.empty()) { return; };
 			if (!de->_finished) { continue; }
-			de->sigDecrypt(this->_tasks.front());
+			emit de->sigDecrypt(this->_tasks.front());
 			this->_tasks.pop();
 		}
 	}
@@ -215,7 +215,7 @@ public slots:
 			if (!de->_finished) { continue; }
 			if (this->_tasks.empty()) { continue; };
 			end = false;
-			de->sigDecrypt(this->_tasks.front());
+			emit de->sigDecrypt(this->_tasks.front());
 			this->_tasks.pop();
 		}
 
