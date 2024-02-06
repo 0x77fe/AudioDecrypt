@@ -246,6 +246,7 @@ public slots:
 			QString::fromUtf8("线程" + to_string(thCount) + "处理 \"") +
 			QString::fromStdWString(path.filename().wstring()) +
 			QString::fromUtf8("\"s时出现错误:\n  ") + e;
+		this->_errs.push_back(info);
 	}
 
 signals:
