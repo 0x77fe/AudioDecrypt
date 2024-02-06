@@ -15,7 +15,7 @@ AudioDecrypt::AudioDecrypt(QWidget* parent)
 	connect(this->ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
 	//
 	connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
-	connect(&this->_Factory, &DecryptFactory::sigSingleFinished, this, &AudioDecrypt::Finished);
+	connect(&this->_Factory, &DecryptFactory::sigSingleFinished, this, &AudioDecrypt::FinishedAdDel);
 	connect(&this->_Factory, &DecryptFactory::sigAllFinished, this, &AudioDecrypt::Finished);
 }
 

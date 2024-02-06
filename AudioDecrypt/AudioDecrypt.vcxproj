@@ -80,7 +80,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <IncludePath>D:\VSC\vcpkg\installed\x64-windows-static\include;D:\VSC\vcpkg\installed\x64-windows-static-md\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\VSC\Qt_3.2_static\lib;D:\VSC\vcpkg\installed\x64-windows-static-md\debug\lib;D:\VSC\vcpkg\installed\x64-windows-static\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\VSC\Qt_3.2_static\lib;D:\VSC\vcpkg\installed\x64-windows-static-md\debug\li;D:\VSC\vcpkg\installed\x64-windows-static\lib;$(LibraryPath)</LibraryPath>
     <ReferencePath>D:\VSC\vcpkg\packages\openssl_x86-windows\lib;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -122,7 +122,7 @@
       <AdditionalOptions>/NODEFAULTLIB:library /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <AdditionalOptions>/NODEFAULTLIB:library	
  %(AdditionalOptions)</AdditionalOptions>

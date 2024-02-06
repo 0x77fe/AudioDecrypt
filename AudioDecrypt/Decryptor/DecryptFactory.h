@@ -57,8 +57,10 @@ public slots:
 			{
 				kgma.KGMADecrypt(filepath, _outputPath);
 			}
-			this->_finished = true;
+			if (this->_enDel) { remove(filepath); };
+
 			emit sigFinished(this->_count, filepath);
+			this->_finished = true;
 		}
 		catch (exception e)
 		{
@@ -112,14 +114,14 @@ private:
 		this->_threads.push_back(th);
 	}
 
-	void DelTh()
+	void DelTh(int count)
 	{
-		auto de = this->_decryptor.last();
-		auto th = this->_threads.last();
+		auto de = this->_decryptor[count];
+		auto th = this->_threads[count];
 		th->quit();
 		th->wait();
-		this->_decryptor.removeLast();
-		this->_threads.removeLast();
+		this->_decryptor.removeAt(count);
+		this->_threads.removeAt(count);
 	}
 
 public:
@@ -171,6 +173,28 @@ public:
 
 	void Add(vector<filesystem::path> files)
 	{
+		//创建或删除线程
+		if (this->_threads.size() < this->_threadCount)
+		{
+			for (int i = _threads.size(); i < _threadCount; i++)
+			{
+				this->CreateTh(i);
+			}
+		}
+		if (this->_threads.size() > this->_threadCount)
+		{
+			for (int i = _threads.size(); i > _threadCount; i--)
+			{
+				int j = _threads.size() - 1;
+				while (j > 0)
+				{
+					if (!this->_decryptor[j]->_finished) { continue; };
+					DelTh(j);
+					j--;
+				}
+			}
+		}
+
 		this->_files = files;
 		for (auto& file : this->_files)
 		{
@@ -187,35 +211,18 @@ public:
 
 public slots:
 
-	void ThreadFinished(int thCount, filesystem::path path)
+	void ThreadFinished(int thCount, filesystem::path fpath)
 	{
-		auto info = QString::fromUtf8("线程" + to_string(thCount) + "处理完毕: ") + QString::fromStdWString(path.filename().wstring());
+		auto info = QString::fromUtf8("线程" + to_string(thCount) + "处理完毕: ") + QString::fromStdWString(fpath.filename().wstring());
 		emit sigSingleFinished(info);
 
-		//创建或删除线程
-		if (this->_threads.size() < this->_threadCount)
-		{
-			for (int i = _threads.size(); i < _threadCount; i++)
-			{
-				this->CreateTh(i);
-			}
-		}
-		if (this->_threads.size() > this->_threadCount)
-		{
-			for (int i = _threads.size(); i > _threadCount; i--)
-			{
-				this->DelTh();
-			}
-		}
-
-		//为所有线程发放任务
+		//为线程发放任务
 		bool end = true;
-		for (auto de : this->_decryptor)
-		{
-			if (!de->_finished) { continue; }
-			if (this->_tasks.empty()) { continue; };
+
+		if (!this->_tasks.empty()) {
+
 			end = false;
-			emit de->sigDecrypt(this->_tasks.front());
+			emit this->_decryptor[thCount]->sigDecrypt(this->_tasks.front());
 			this->_tasks.pop();
 		}
 
@@ -235,7 +242,7 @@ public slots:
 
 	void ThreadErr(int thCount, filesystem::path path, QString e)
 	{
-		auto info = 
+		auto info =
 			QString::fromUtf8("线程" + to_string(thCount) + "处理 \"") +
 			QString::fromStdWString(path.filename().wstring()) +
 			QString::fromUtf8("\"s时出现错误:\n  ") + e;
