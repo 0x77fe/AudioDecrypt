@@ -198,18 +198,14 @@
     <QtUic Include="AudioDecrypt.ui" />
     <QtMoc Include="AudioDecrypt.h" />
     <ClCompile Include="AudioDecrypt.cpp" />
-    <ClCompile Include="Decryptor\KGMADecryptor.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Decryptor\NCMDecryptor.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
     <None Include="AudioDecrypt.ico" />
     <ResourceCompile Include="AudioDecrypt.rc" />
     <QtMoc Include="Decryptor\DecryptFactory.h" />
     <ClInclude Include="Decryptor\Cde.h" />
     <ClInclude Include="Decryptor\Common.h" />
+    <ClInclude Include="Decryptor\KGMADecryptor.h" />
+    <ClInclude Include="Decryptor\NCMDecryptor.h" />
     <ClInclude Include="stdafx.h" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">Create</PrecompiledHeader>
