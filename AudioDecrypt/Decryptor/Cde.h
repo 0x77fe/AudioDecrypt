@@ -1,16 +1,16 @@
 #pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <openssl/aes.h>
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <codecvt>
+
 #include "Common.h"
 
 using namespace std;
+
 
 string aes_ecb_decrypt(const string& cipherText, const string& key)
 {
@@ -31,7 +31,7 @@ string aes_ecb_decrypt(const string& cipherText, const string& key)
 
 	//去除填充
 	int padding = plaintext[plaintext.size() - 1];
-	if (padding < 1 || padding > 128) { throw runtime_error(Utf8ToGbk("AES填充错误")); }
+	if (padding < 1 || padding > 128) { throw runtime_error("AES填充错误"); }
 
 	bool validPadding = true;
 	for (int i = 1; i <= padding; i++)
@@ -49,7 +49,7 @@ string aes_ecb_decrypt(const string& cipherText, const string& key)
 	}
 	else
 	{
-		throw runtime_error(Utf8ToGbk("AES填充错误"));
+		throw runtime_error("AES填充错误");
 	}
 	return plaintext;
 }

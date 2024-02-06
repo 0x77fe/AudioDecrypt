@@ -1,7 +1,3 @@
-#pragma once
-#if _MSC_VER >= 1600
-#pragma execution_character_set("utf-8")
-#endif
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/tpropertymap.h>
@@ -19,16 +15,15 @@
 #include <filesystem>
 #include <fstream>
 
-#include "rapidjson/document.h"
-#include "rapidjson/istreamwrapper.h"
+#include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 
 #include "Cde.h"
 
-#include "Common.h"
 
 using namespace std;
-
-namespace ncm {
+class NCM
+{
 	constexpr static const char NCM_hander[] = { 0x43, 0x54, 0x45, 0x4e, 0x46, 0x44, 0x41, 0x4d, 0x01 };//文件头
 	constexpr static const char _info_key[] = { 0x23,0x31,0x34,0x6C,0x6A,0x6B,0x5F,0x21,0x5C,0x5D,0x26,0x30,0x55,0x3C,0x27,0x28 };//"#14ljk_!\]&0U<'(";//163key
 	constexpr static const char _core_key[] = { 0x68,0x7A,0x48,0x52,0x41,0x6D,0x73,0x6F,0x35,0x6B,0x49,0x6E,0x62,0x61,0x78,0x57 };//"hzHRAmso5kInbaxW";//rc4corekey
@@ -37,7 +32,7 @@ namespace ncm {
 	{
 		char magic_hander[10];
 		ms.read(magic_hander, 10);
-		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error(Utf8ToGbk("ncm已损坏或不是一个ncm文件")); }
+		if (strncmp(NCM_hander, magic_hander, 9) != 0) { throw runtime_error("ncm已损坏或不是一个ncm文件"); }
 	}
 
 	string GetRC4Key(stringstream& ms)
@@ -164,19 +159,19 @@ namespace ncm {
 		f.close();
 	}
 
-	void SetMusicInfo(filesystem::path& originalFilePath, musicInfo& info)
+	void SetMusicInfo(filesystem::path& originalFilePath, musicInfo& info, bool write163Key)
 	{
 		using namespace TagLib;
 		if (info.format == "flac")
 		{
-			FLAC::File file(originalFilePath.c_str(), AudioProperties::Accurate);
+			FLAC::File file(originalFilePath.c_str());
 			auto img = new FLAC::Picture();
 			img->setData(ByteVector(info.cover.data(), info.cover.length()));
 			img->setMimeType("image/jpeg");
 			img->setType(FLAC::Picture::FrontCover);
 			file.addPicture(img);
 			auto xiph = file.xiphComment(true);
-			xiph->addField("DESCRIPTION", String(info.ncmkey, String::UTF8));
+			if (write163Key)xiph->addField("DESCRIPTION", String(info.ncmkey, String::UTF8));
 			xiph->addField("ALBUM", String(info.album, String::UTF8));
 			xiph->addField("ARTIST", String(join(info.artist, ";"), String::UTF8));
 
@@ -192,19 +187,19 @@ namespace ncm {
 			img->setPicture(ByteVector(info.cover.data(), info.cover.length()));
 			tag->removeFrames("APIC");
 			tag->addFrame(img);
+			if (write163Key)tag->setComment(String(info.ncmkey, String::UTF8));
 			tag->setArtist(String(join(info.artist, ";"), String::UTF8));
-			tag->setComment(String(info.ncmkey, String::UTF8));
-			tag->setAlbum(String(info.album,String::UTF8));
+			tag->setAlbum(String(info.album, String::UTF8));
 
 			file.save();
 		}
 	}
 
-
-	void Decrypt(const filesystem::path& originalFilePath, filesystem::path& outputPath = *new filesystem::path(), bool skip = false)
+public:
+	void NCMDecrypt(const filesystem::path& originalFilePath, bool write163Key, filesystem::path _outputPath)
 	{
 		ifstream f(originalFilePath, ios::binary);
-		if (!f) { throw runtime_error(Utf8ToGbk("打开文件失败")); return; };
+		if (!f) { throw runtime_error("打开文件失败"); return; };
 
 		stringstream ms;
 		ms << f.rdbuf();
@@ -238,6 +233,8 @@ namespace ncm {
 		wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 		wstring wideFilename = converter.from_bytes(name);
 
+		filesystem::path outputPath = _outputPath;
+
 		filesystem::path outoriginalFilePath;
 		if (outputPath.empty())
 		{
@@ -245,17 +242,14 @@ namespace ncm {
 		}
 		else
 		{
-			outoriginalFilePath = outputPath.append("\\").append(wideFilename);
+			outoriginalFilePath = outputPath.wstring() + (L"\\" + wideFilename);
 		}
-		ifstream infile(outoriginalFilePath);
-		if ((!infile.good()) && skip) { return; }
-		infile.close();
 
 		//正式解密文件
 		ofstream file(outoriginalFilePath, ios::out | ios::binary);
-		if (!file.good()) { throw runtime_error(Utf8ToGbk("写文件错误")); }
+		if (!file.good()) { throw runtime_error("写文件错误"); }
 		DecodeAudio(ms, file, RC4_key);
 
-		SetMusicInfo(outoriginalFilePath, info);
+		SetMusicInfo(outoriginalFilePath, info, write163Key);
 	}
 };
