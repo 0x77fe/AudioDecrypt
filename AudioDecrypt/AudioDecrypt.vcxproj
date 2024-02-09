@@ -122,7 +122,7 @@
       <AdditionalOptions>/NODEFAULTLIB:library /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <AdditionalOptions>/NODEFAULTLIB:library	
  %(AdditionalOptions)</AdditionalOptions>

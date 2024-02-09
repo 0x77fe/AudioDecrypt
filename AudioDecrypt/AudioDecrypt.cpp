@@ -13,6 +13,7 @@ AudioDecrypt::AudioDecrypt(QWidget* parent)
 	connect(this->ui.pushButton_startProcess, &QPushButton::clicked, this, &AudioDecrypt::StartProcess);
 	connect(this->ui.pushButton_selsctDir, &QPushButton::clicked, this, &AudioDecrypt::SelectDir);
 	connect(this->ui.pushButton_choseSaveDir, &QPushButton::clicked, this, &AudioDecrypt::SelectSaveDir);
+	connect(this->ui.pushButton_selectFiles, &QPushButton::clicked, this, &AudioDecrypt::SelectFiles);
 	//
 	connect(this, &AudioDecrypt::SignalAddlog, this, &AudioDecrypt::Addlog);
 	connect(&this->_Factory, &DecryptFactory::sigSingleFinished, this, &AudioDecrypt::Finished);
@@ -52,15 +53,15 @@ void AudioDecrypt::StartProcess()
 
 void AudioDecrypt::SelectDir()
 {
+	//选择文件夹
+	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
+	if (folderPath.isEmpty()) { Addlog("未选择文件夹"); return; }
+	string Dir = folderPath.toStdString();
+	this->ui.lineEdit_originalDir->setText(folderPath);
+
 	//重置
 	this->_files.clear();
 	this->_model.clear();
-
-	//选择文件夹
-	auto folderPath = QString(QFileDialog::getExistingDirectory(this, tr("选择文件夹"), "/", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks));
-	if (folderPath.isEmpty()) { return; }
-	string Dir = folderPath.toStdString();
-	this->ui.lineEdit_originalDir->setText(folderPath);
 
 	//遍历搜索
 	_files = SerchFiles
@@ -87,6 +88,29 @@ void AudioDecrypt::SelectSaveDir()
 	if (folderPath.isEmpty()) { return; }
 	string Dir = folderPath.toStdString();
 	this->ui.lineEdit_saveDir->setText(folderPath);
+}
+
+void AudioDecrypt::SelectFiles()
+{
+	QString filterText = "全部 (*.ncm *.kgm *.kgma);;网易云文件 (*.ncm);;酷狗文件 (*.kgm *.kgma)";
+	QStringList selectedFiles = QFileDialog::getOpenFileNames(nullptr, "选择文件", QCoreApplication::applicationDirPath(), filterText);
+	if (selectedFiles.isEmpty()) { Addlog("未选择文件"); return; }
+	//重置
+	this->_files.clear();
+	this->_model.clear();
+	//注入模型
+	for (QString i : selectedFiles)
+	{
+		this->_files.push_back(i.toStdWString());
+	}
+	for (const auto& file : this->_files)
+	{
+		auto item = new QStandardItem(QString::fromStdWString(file.filename().wstring()));
+		this->_model.appendRow(item);
+	}
+	//设置ui'
+	this->ui.listView_originalFiles->setModel(&_model);
+	this->Addlog(QString::fromUtf8("选择了 ") + QString::fromUtf8(to_string(_files.size()) + " 个文件"));
 }
 
 void AudioDecrypt::Addlog(QString Info, QString End, bool Time)

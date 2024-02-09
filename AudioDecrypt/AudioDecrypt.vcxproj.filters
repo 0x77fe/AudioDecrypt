@@ -58,12 +58,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Decryptor\KGMADecryptor.cpp">
-      <Filter>Source Files\Decryptor</Filter>
-    </ClCompile>
-    <ClCompile Include="Decryptor\NCMDecryptor.cpp">
-      <Filter>Source Files\Decryptor</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Decryptor\DecryptFactory.h">
@@ -76,6 +70,12 @@
     </ClInclude>
     <ClInclude Include="Decryptor\Cde.h">
       <Filter>Header Files\Decryptor</Filter>
+    </ClInclude>
+    <ClInclude Include="Decryptor\KGMADecryptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Decryptor\NCMDecryptor.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

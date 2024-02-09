@@ -17,6 +17,7 @@ public:
 	void StartProcess();
 	void SelectDir();
 	void SelectSaveDir();
+	void SelectFiles();
 
 	QStandardItemModel _model;
 	vector<filesystem::path> _files;
