@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>qml;cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>qrc;rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+    </Filter>
+    <Filter Include="Translation Files">
+      <UniqueIdentifier>{639EADAA-A684-42e4-A9AD-28FC9BCB8F7C}</UniqueIdentifier>
+      <Extensions>ts</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Standard">
+      <UniqueIdentifier>{09c1ddd7-3f28-49b8-85f8-8b8ddae9a53f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Private">
+      <UniqueIdentifier>{15ada5ea-6d7c-4ceb-a894-18f2b54d6508}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Private">
+      <UniqueIdentifier>{23a86484-0dfb-4d1f-85e8-977c22decb27}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="MusicDecryptor.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtUic Include="MusicDecryptor.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="MusicDecryptor.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <ClCompile Include="MusicDecryptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <None Include="MusicDecryptor.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <ResourceCompile Include="MusicDecryptor.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Private\KGM.cpp">
+      <Filter>Resource Files\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Private\NCM.cpp">
+      <Filter>Resource Files\Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Standard\AES.h">
+      <Filter>Header Files\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="Standard\Base64.h">
+      <Filter>Header Files\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\KGM.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\NCM.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\DMusic.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\DMusicFactory.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="DecryptThread.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+</Project>
