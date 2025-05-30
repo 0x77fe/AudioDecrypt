@@ -21,7 +21,7 @@ void NCM::decryptRC4key()
 	{
 		key_data[i] ^= 0x64;
 	}
-	auto RC4_key = _aes.ecb_decrypt(key_data, (const unsigned char*)_core_key);
+	auto RC4_key = AES::ecb_decrypt(key_data, (const unsigned char*)_core_key);
 	RC4_key.erase(RC4_key.begin(), RC4_key.begin() + 17); // AES解密后去除前17位
 	this->_rc4key = std::vector<uint8_t>(RC4_key.begin(), RC4_key.end());
 }
@@ -36,8 +36,8 @@ void NCM::decryptmMetaInfo()
 
 	this->_cloudkey = std::u8string(meta_data.begin(), meta_data.end());
 	meta_data.erase(meta_data.begin(), meta_data.begin() + 22);// 去除前22位
-	auto meta_info_d = _base64.decode(meta_data);
-	auto meta_info = _aes.ecb_decrypt(meta_info_d, (const unsigned char*)_meta_key);
+	auto meta_info_d = Base64::decode(meta_data);
+	auto meta_info = AES::ecb_decrypt(meta_info_d, (const unsigned char*)_meta_key);
 	meta_info.erase(meta_info.begin(), meta_info.begin() + 6); // 去除前6位
 
 	rapidjson::Document doc;

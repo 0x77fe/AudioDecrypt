@@ -61,6 +61,15 @@
     <ClCompile Include="Private\NCM.cpp">
       <Filter>Resource Files\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Private\KGG.cpp">
+      <Filter>Resource Files\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Private\DMusic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Private\QMC2.cpp">
+      <Filter>Resource Files\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Standard\AES.h">
@@ -80,6 +89,24 @@
     </ClInclude>
     <ClInclude Include="Private\DMusicFactory.h">
       <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\KGG.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Standard\MD5.h">
+      <Filter>Header Files\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\QMC2.h">
+      <Filter>Header Files\Private</Filter>
+    </ClInclude>
+    <ClInclude Include="Standard\RC4.h">
+      <Filter>Header Files\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="Standard\TEA.h">
+      <Filter>Header Files\Standard</Filter>
+    </ClInclude>
+    <ClInclude Include="Standard\Endian.h">
+      <Filter>Header Files\Standard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

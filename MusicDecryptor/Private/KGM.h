@@ -79,7 +79,7 @@ protected:
 	std::vector<uint8_t> _key;
 
 	void jumpHeader();
-	void ceeateTempOutputFile(fs::path& output_dir);
+	void createTempOutputFile(fs::path& output_dir);
 	void getHeaderLen();
 	void getKey();
 	void renameFile();

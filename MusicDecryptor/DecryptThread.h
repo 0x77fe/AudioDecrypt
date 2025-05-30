@@ -16,7 +16,8 @@ class DecryptWorker : public QThread
 public:
 	DecryptWorker(QObject* parent = nullptr) : QThread(parent){};
 public slots:
-	void decrypt(fs::path filepath, fs::path outputDir, bool enableCloudkey = true)
+	void decrypt(fs::path filepath, fs::path outputDir, bool enableCloudkey = true,
+		KeyMap kggkeymap = KeyMap())
 	{
 #if _DEBUG
 		qDebug() << "Thread ID: " << this->thread()->currentThreadId() << "\n";
@@ -31,6 +32,7 @@ public slots:
 		config.outputDir = outputDir;
 		config.enWriteCloudkey = enableCloudkey;
 		config.filepath = filepath;
+		config.kggkeymap = kggkeymap;
 		try
 		{
 			auto decryptor = DMusicFactory::create(config);
@@ -68,7 +70,8 @@ public slots:
 signals:
 	void sig_errorOccured(QString);
 	void sig_decryptFinished(DecryptWorker*);
-	void sig_run_decrypt(fs::path filepath, fs::path outputDir, bool enableCloudkey = true);
+	void sig_run_decrypt(fs::path filepath, fs::path outputDir, bool enableCloudkey = true,
+							KeyMap kggkeymap = KeyMap());
 
 private:
 	bool _free = true;
@@ -98,6 +101,8 @@ public:
 	};
 	void addTasks(const std::vector<fs::path>& files,const fs::path& outputDir, bool enableCloudkey = true, bool enableRemoveSourceFile = false)
 	{
+		bool flag = false;
+
 		if (not this->_free)
 		{
 			return;
@@ -108,11 +113,25 @@ public:
 		this->_output_dir = outputDir;
 		this->_enable_cloudkey = enableCloudkey;
 		this->_enable_remove_source_file = enableRemoveSourceFile;
+		// 读取key文件
+		std::ifstream kggkeyfile("kgg.key");
+		if (kggkeyfile.is_open())
+		{
+			std::u8string keystr;
+			kggkeyfile.seekg(0, std::ios::end);
+			keystr.resize(kggkeyfile.tellg());
+			kggkeyfile.seekg(0, std::ios::beg);
+			kggkeyfile.read(reinterpret_cast<char*>(keystr.data()), keystr.size());
+			kggkeyfile.close();
+			this->_kggkeymap = KeyMap(keystr);
+		}
+		//
 		for (size_t i = 0; i < this->_max_threads and not this->_files.empty(); i++)
 		{
 			if (this->_decrypt_workers[i]->isFree())
 			{
-				emit _decrypt_workers[i]->sig_run_decrypt(this->_files.front(),outputDir, enableCloudkey);
+				emit _decrypt_workers[i]->sig_run_decrypt(this->_files.front(),outputDir, enableCloudkey,
+					this->_kggkeymap);
 				this->_files.erase(this->_files.begin());
 			}
 		}
@@ -153,7 +172,25 @@ public slots:
 	};
 	void errorOccured(QString error)
 	{
+		auto lock = QMutexLocker(this->_mutex.get());
 		emit sig_errorOccured(error);
+		if (this->_files.empty() and this->workersFree())
+		{
+			this->_free = true;
+			emit sig_all_tasks_finished();
+			return;
+		}
+		if (not this->_files.empty())
+		{
+			for (auto& worker : this->_decrypt_workers)
+			{
+				if (worker->isFree())
+				{
+					emit worker->sig_run_decrypt(this->_files.front(), this->_output_dir, this->_enable_cloudkey);
+					this->_files.erase(this->_files.begin());
+				}
+			}
+		}
 	};
 signals:
 	void sig_atask_finished(QString);
@@ -166,6 +203,7 @@ private:
 	bool _enable_remove_source_file = false;
 	fs::path _output_dir;
 	size_t _max_threads = 8;
+	KeyMap _kggkeymap;
 	std::vector<fs::path> _files;
 	std::unique_ptr<QMutex> _mutex;
 	std::vector<std::unique_ptr<DecryptWorker>> _decrypt_workers;

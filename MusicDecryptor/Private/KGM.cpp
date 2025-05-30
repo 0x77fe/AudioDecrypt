@@ -5,7 +5,7 @@ void KGMBase::jumpHeader()
 	this->_file.seekg(16, std::ios::beg);
 }
 
-void KGMBase::ceeateTempOutputFile(fs::path& output_dir)
+void KGMBase::createTempOutputFile(fs::path& output_dir)
 {
 	fs::path temppath = output_dir;
 	temppath /= this->_filepath.filename();
@@ -29,7 +29,6 @@ void KGMBase::getKey()
 void KGMBase::judgeMusicType()
 {
 	constexpr char FLAC_HEADER[4] = { "fLa" };
-	constexpr char MP3_HEADER[4] = { "ID3" };
 	uint8_t header[4] = { 0 };
 	auto music_file = std::ifstream(this->_output_filepath, std::ios::binary);
 	if (!music_file.is_open())
@@ -45,17 +44,9 @@ void KGMBase::judgeMusicType()
 	{
 		this->_musictype = FLAC;
 	}
-	else if (std::memcmp(header, MP3_HEADER, 3) == 0)
-	{
-		this->_musictype = MP3;
-	}
 	else
 	{
-		music_file.close();
-		fs::remove(this->_output_filepath);
-		throw DMusicRuntimeError(
-			u8"Rename Err - Unsupport file type: " +
-			this->_output_filepath.u8string());
+		this->_musictype = MP3;
 	}
 	music_file.close();
 }
@@ -155,7 +146,7 @@ void KGM_kgm::decrypt(DMusicIOConfig& config)
 	this->jumpHeader();
 	this->getHeaderLen();
 	this->getKey();
-	this->ceeateTempOutputFile(config.outputDir);
+	this->createTempOutputFile(config.outputDir);
 	// 正式解密
 	this->_file.seekg(this->_header_len, std::ios_base::beg);
 	size_t pos = 0, offset = 0;
@@ -206,7 +197,7 @@ void KGM_vpr::decrypt(DMusicIOConfig& config)
 	this->jumpHeader();
 	this->getHeaderLen();
 	this->getKey();
-	this->ceeateTempOutputFile(config.outputDir);
+	this->createTempOutputFile(config.outputDir);
 	// 正式解密
 	this->_file.seekg(this->_header_len, std::ios_base::beg);
 	size_t pos = 0, offset = 0;

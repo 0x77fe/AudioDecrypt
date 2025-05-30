@@ -80,7 +80,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcrypto.lib;libssl.lib;tag.lib;tag_c.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;tag.lib;tag_c.lib;zlib.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -91,7 +91,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>crypt32.lib;libcrypto.lib;libssl.lib;tag.lib;tag_c.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;libcrypto.lib;libssl.lib;tag.lib;tag_c.lib;zlib.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -123,8 +123,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Private\DMusic.cpp" />
+    <ClCompile Include="Private\KGG.cpp" />
     <ClCompile Include="Private\KGM.cpp" />
     <ClCompile Include="Private\NCM.cpp" />
+    <ClCompile Include="Private\QMC2.cpp" />
     <QtRcc Include="MusicDecryptor.qrc" />
     <QtUic Include="MusicDecryptor.ui" />
     <QtMoc Include="MusicDecryptor.h" />
@@ -134,9 +137,15 @@
     <ResourceCompile Include="MusicDecryptor.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Private\QMC2.h" />
+    <ClInclude Include="Standard\Endian.h" />
+    <ClInclude Include="Standard\MD5.h" />
+    <ClInclude Include="Standard\RC4.h" />
+    <ClInclude Include="Standard\TEA.h" />
     <QtMoc Include="DecryptThread.h" />
     <ClInclude Include="Private\DMusic.h" />
     <ClInclude Include="Private\DMusicFactory.h" />
+    <ClInclude Include="Private\KGG.h" />
     <ClInclude Include="Private\KGM.h" />
     <ClInclude Include="Private\NCM.h" />
     <ClInclude Include="Standard\AES.h" />

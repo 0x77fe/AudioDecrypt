@@ -49,4 +49,25 @@ public:
 		//}
 		return plaintext;
 	}
+	static std::vector<uint8_t> cbc_decrypt(const std::vector<uint8_t>& cipherText, const uint8_t* key, const uint8_t* iv)
+	{
+		std::vector<uint8_t> plaintext(cipherText.size() + EVP_MAX_BLOCK_LENGTH);
+
+		// 初始化解密器
+		EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+		EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), nullptr, key, iv);
+		EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+		// 开始解密
+		int out_len1, out_len2;
+		EVP_DecryptUpdate(ctx, plaintext.data(), &out_len1, cipherText.data(), (int)cipherText.size());
+		EVP_DecryptFinal_ex(ctx, plaintext.data() + out_len1, &out_len2);
+
+		// 释放解密器
+		EVP_CIPHER_CTX_free(ctx);
+
+		// 去除填充
+		plaintext.resize((size_t)out_len1 + (size_t)out_len2);
+		return plaintext;
+	}
 };

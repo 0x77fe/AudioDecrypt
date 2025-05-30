@@ -13,6 +13,7 @@ MusicDecryptor::MusicDecryptor(QWidget* parent)
 	connect(this->ui.pushButton_choseSaveDir, SIGNAL(clicked()), this, SLOT(selectSaveDir()));
 	connect(this->ui.pushButton_selectFiles, SIGNAL(clicked()), this, SLOT(selectFiles()));
 	connect(this->ui.pushButton_startProcess, SIGNAL(clicked()), this, SLOT(startProcess()));
+	connect(this->ui.pushButton_selectKgDb, SIGNAL(clicked()), this, SLOT(selectKgDb()));
 	//链接线程信号
 	connect(this->_decrypt_thread_manager.get(), &DecryptThreadManager::sig_atask_finished, [=](QString info) {this->addlog(info,Qt::gray);});
 	connect(this->_decrypt_thread_manager.get(), &DecryptThreadManager::sig_errorOccured, [=](QString info) {this->addlog(u8"错误:",Qt::red);this->addlog(info+u8"\n");});
@@ -69,7 +70,8 @@ void MusicDecryptor::selectDir()
 		{
 			if (entry.extension() == u8".ncm" or
 				entry.extension() == u8".kgm" or
-				entry.extension() == u8".kgma" )
+				entry.extension() == u8".kgma" or
+				entry.extension() == u8".kgg" )
 			{
 				return true;
 			}
@@ -104,7 +106,7 @@ void MusicDecryptor::selectSaveDir()
 
 void MusicDecryptor::selectFiles()
 {
-	QString filterText = u8"全部 (*.ncm *.kgm *.kgma);;网易云文件 (*.ncm);;酷狗文件 (*.kgm *.kgma)";
+	QString filterText = u8"全部 (*.ncm *.kgm *.kgma *.kgg);;网易云文件 (*.ncm);;酷狗文件 (*.kgm *.kgma *.kgg)";
 	QStringList selectedFiles = QFileDialog::getOpenFileNames(this, u8"选择文件", QCoreApplication::applicationDirPath(), filterText);
 	if (selectedFiles.isEmpty()) { addlog(u8"未选择文件", Qt::blue); return; }
 	// 重置
@@ -123,6 +125,34 @@ void MusicDecryptor::selectFiles()
 	// 设置ui'
 	this->ui.listView_originalFiles->setModel(this->_listview_files_model.get());
 	this->addlog(QString(L"选择了 " + to_wstring(_files.size()) + L" 个文件"));
+}
+
+void MusicDecryptor::selectKgDb()
+{
+	QString filterText = u8"酷狗数据库 (KGMusicV3.db)";
+	QStringList selectedFiles = QFileDialog::getOpenFileNames(this, u8"选择文件", QStandardPaths::writableLocation(QStandardPaths::AppDataLocation), filterText);
+	if (selectedFiles.isEmpty()) { addlog(u8"未选择文件", Qt::blue); return; }
+	try
+	{
+		auto db = KGDatabase();
+		db.loadDecryptedDatabase(selectedFiles.first().toStdWString());
+		this->addlog(u8"读取数据库成功", Qt::green);
+		auto map = db.getKeyMap();
+		auto keyfile = ofstream("kgg.key", std::ios::app);
+		if (!keyfile.is_open())
+		{
+			this->addlog(u8"输出kgg.key文件失败", Qt::red);
+			return;
+		}
+		keyfile.write(reinterpret_cast<const char*>(map.getStr().c_str()), map.getStr().size());
+		keyfile.close();
+		this->addlog(u8"已生成kgg.key文件", Qt::green);
+	}
+	catch (const std::exception& e)
+	{
+		this->addlog(u8"读取数据库时发生了错误:", Qt::red);
+		this->addlog(e.what(), Qt::black);
+	}
 }
 
 void MusicDecryptor::addlog(QString Info, Qt::GlobalColor color, QString End)

@@ -6,7 +6,8 @@
 class Base64
 {
 public:
-	std::vector<uint8_t> decode(const std::vector<uint8_t>& base64_str)
+    template<typename T>
+	static std::vector<uint8_t> decode(const T& base64_str)
 	{
         std::vector<uint8_t> decoded(0);
         BIO* bio = nullptr;

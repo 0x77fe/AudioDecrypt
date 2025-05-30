@@ -30,6 +30,7 @@ public slots:
 	void selectDir();
 	void selectSaveDir();
 	void selectFiles();
+	void selectKgDb();
 
 signals:
 	void signalAddlog(QString Info, QString End = "\n");
