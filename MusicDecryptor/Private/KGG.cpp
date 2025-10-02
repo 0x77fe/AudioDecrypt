@@ -276,20 +276,32 @@ void KGG::renameFile()
             u8"Rename Err - Failed to open file: " +
             this->_output_filepath.u8string());
     }
-    title = (char8_t*)file.tag()->title().data(TagLib::String::UTF8).data();
-    artist = (char8_t*)file.tag()->artist().data(TagLib::String::UTF8).data();
+
+    // 读取标题和艺术家信息
+    auto tag_title = file.tag()->title();
+    if (!tag_title.isEmpty())
+    {
+        title = reinterpret_cast<char8_t*>(tag_title.data(TagLib::String::UTF8).data());
+    }
+    auto tag_artist = file.tag()->artist();
+    if (!tag_artist.isEmpty())
+    {
+        artist = reinterpret_cast<char8_t*>(tag_artist.data(TagLib::String::UTF8).data());
+    }
     file = TagLib::FileRef();// 释放文件
+
     // 无法确定完整标题则使用源文件名
     if (title.empty() or artist.empty())
     {
-        fs::path newpath = this->_output_filepath;
+        std::wstring newpath = this->_output_filepath;
+        newpath.erase(newpath.find_last_of(u8'.'), newpath.length());
         if (this->_musictype == FLAC)
         {
-            newpath.append(u8".flac");
+            newpath.append(L".flac");
         }
         else if (this->_musictype == MP3)
         {
-            newpath.append(u8".mp3");
+            newpath.append(L".mp3");
         }
         fs::rename(this->_output_filepath, newpath);
         return;
